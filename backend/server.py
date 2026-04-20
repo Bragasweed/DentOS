@@ -2072,24 +2072,30 @@ async def seed_reminders_if_missing():
 
 @app.on_event("startup")
 async def startup():
-    await db.users.create_index("email", unique=True)
-    await db.users.create_index("studio_id")
-    await db.patients.create_index("studio_id")
-    await db.estimates.create_index("studio_id")
-    await db.appointments.create_index("studio_id")
-    await db.payments.create_index("studio_id")
-    await db.installments.create_index("payment_id")
-    await db.reminders.create_index("studio_id")
-    await db.reminders.create_index("estimate_id")
-    await db.reminders.create_index("patient_id")
-    await db.automation_rules.create_index("studio_id")
-    await db.automation_runs.create_index("studio_id")
-    await db.automation_runs.create_index("rule_id")
-    await db.automation_runs.create_index("estimate_id")
-    await db.login_attempts.create_index("key", unique=True)
-    await seed_demo()
-    await seed_reminders_if_missing()
-    await seed_phase3_demo()
+    try:
+        await db.users.create_index("email", unique=True)
+        await db.users.create_index("studio_id")
+        await db.patients.create_index("studio_id")
+        await db.estimates.create_index("studio_id")
+        await db.appointments.create_index("studio_id")
+        await db.payments.create_index("studio_id")
+        await db.installments.create_index("payment_id")
+        await db.reminders.create_index("studio_id")
+        await db.reminders.create_index("estimate_id")
+        await db.reminders.create_index("patient_id")
+        await db.automation_rules.create_index("studio_id")
+        await db.automation_runs.create_index("studio_id")
+        await db.automation_runs.create_index("rule_id")
+        await db.automation_runs.create_index("estimate_id")
+        await db.login_attempts.create_index("key", unique=True)
+        await seed_demo()
+        await seed_reminders_if_missing()
+        await seed_phase3_demo()
+    except Exception:
+        logger.exception(
+            "Startup database initialization failed. "
+            "Check MONGO_URL/DB_NAME and MongoDB network access in Vercel."
+        )
 
 
 @app.on_event("shutdown")
