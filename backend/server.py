@@ -266,6 +266,150 @@ class TaskIn(BaseModel):
     done: bool = False
 
 
+# ----- Follow-up Center schemas -----
+REMINDER_CHANNELS = ("whatsapp", "email", "manual")
+TEMPLATE_KEYS = ("wa_template_a", "wa_template_b", "email_reminder", "manual_note")
+REMINDER_STATUSES = ("sent", "delivered", "read", "replied", "appt_booked", "accepted", "rejected", "no_response")
+
+TEMPLATES = {
+    "wa_template_a": {
+        "label": "WhatsApp · Amichevole",
+        "channel": "whatsapp",
+        "subject": None,
+        "body": (
+            "Ciao {patient_first_name}! 👋 Sono {sender_name} dello studio {studio_name}.\n\n"
+            "Volevo ricordarle il preventivo per {estimate_title} ({estimate_amount}€) "
+            "che le abbiamo presentato. Se vuole, possiamo fissare una chiacchierata rapida "
+            "per chiarire qualsiasi dubbio, senza impegno.\n\nQuando preferisce?"
+        ),
+    },
+    "wa_template_b": {
+        "label": "WhatsApp · Diretto",
+        "channel": "whatsapp",
+        "subject": None,
+        "body": (
+            "Buongiorno {patient_first_name}, studio {studio_name}.\n\n"
+            "Abbiamo ancora disponibilità per iniziare il trattamento preventivato "
+            "({estimate_title}, {estimate_amount}€). "
+            "Le propongo una visita preliminare gratuita per definire la tempistica.\n\n"
+            "Va bene questa settimana o la prossima?"
+        ),
+    },
+    "email_reminder": {
+        "label": "Email · Formale",
+        "channel": "email",
+        "subject": "Promemoria preventivo {estimate_title} — {studio_name}",
+        "body": (
+            "Gentile {patient_first_name},\n\n"
+            "la contattiamo per ricordarle il preventivo per {estimate_title} "
+            "(importo {estimate_amount}€) che le abbiamo presentato recentemente.\n\n"
+            "Siamo a disposizione per ogni chiarimento. Può rispondere a questa email "
+            "oppure contattare la nostra segreteria per fissare una visita preliminare.\n\n"
+            "Cordiali saluti,\n{sender_name}\nStudio {studio_name}"
+        ),
+    },
+    "manual_note": {
+        "label": "Nota manuale (chiamata / di persona)",
+        "channel": "manual",
+        "subject": None,
+        "body": "Contatto manuale: {notes}",
+    },
+}
+
+
+class ReminderIn(BaseModel):
+    model_config = ConfigDict(extra="ignore")
+    patient_id: str
+    estimate_id: Optional[str] = None
+    channel: Literal["whatsapp", "email", "manual"]
+    template_key: Literal["wa_template_a", "wa_template_b", "email_reminder", "manual_note"]
+    message_text: str
+    subject: Optional[str] = None
+
+
+class ReminderStatusIn(BaseModel):
+    status: Literal["sent", "delivered", "read", "replied", "appt_booked", "accepted", "rejected", "no_response"]
+    outcome_notes: Optional[str] = ""
+
+
+def render_template(tpl: dict, variables: dict) -> dict:
+    out = {
+        "subject": (tpl.get("subject") or "").format(**variables) if tpl.get("subject") else None,
+        "body": tpl["body"].format(**variables),
+    }
+    return out
+
+
+def compute_followup_score(estimate: dict, prior_reminders: list) -> tuple[int, str]:
+    """Return (score 0-100, recommended_action_key)."""
+    score = 50
+    amount = float(estimate.get("total_amount") or 0)
+    if amount >= 3000:
+        score += 20
+    elif amount >= 1500:
+        score += 10
+    elif amount >= 500:
+        score += 3
+
+    status = estimate.get("status")
+    if status == "presentato":
+        score += 15
+    elif status == "in_attesa":
+        score += 5
+
+    # Days since presentation
+    presented = estimate.get("presented_at")
+    if presented:
+        try:
+            dpres = datetime.fromisoformat(presented).date() if "T" in presented else date.fromisoformat(presented)
+            days_since = (date.today() - dpres).days
+            if days_since <= 7:
+                score += 10
+            elif days_since <= 21:
+                score += 5
+            elif days_since > 45:
+                score -= 15
+            elif days_since > 30:
+                score -= 8
+        except Exception:
+            pass
+
+    # Due follow-up
+    fu = estimate.get("next_followup_date")
+    if fu and fu <= today_str():
+        score += 10
+
+    # Fatigue: too many prior reminders without response
+    no_resp = sum(1 for r in prior_reminders if r.get("status") in ("sent", "delivered", "no_response"))
+    positive = sum(1 for r in prior_reminders if r.get("status") in ("replied", "appt_booked", "accepted"))
+    score -= min(20, no_resp * 5)
+    score += min(15, positive * 5)
+
+    score = max(0, min(100, score))
+
+    # Recommended action by score band + amount + priors
+    if score >= 75:
+        action = "call_now"
+    elif score >= 55:
+        action = "send_wa_a"
+    elif score >= 35:
+        action = "send_wa_b"
+    elif score >= 15:
+        action = "send_email"
+    else:
+        action = "archive_or_manual"
+    return score, action
+
+
+RECOMMENDED_ACTION_LABELS = {
+    "call_now": "Chiama subito (alta priorità)",
+    "send_wa_a": "Invia WhatsApp amichevole",
+    "send_wa_b": "Invia WhatsApp diretto",
+    "send_email": "Invia email formale",
+    "archive_or_manual": "Nota manuale o archivia",
+}
+
+
 # ----- Auth endpoints -----
 @api.post("/auth/register")
 async def register(body: RegisterIn, response: Response):
@@ -759,9 +903,6 @@ async def root():
     return {"app": "DentalFlow AI", "status": "ok"}
 
 
-app.include_router(api)
-
-
 # ----- Startup: indexes + demo seed -----
 DEMO_STUDIO_NAME = "Studio Dentistico Demo"
 
@@ -935,6 +1076,338 @@ async def seed_demo():
     logger.info("Demo seed completed")
 
 
+# ----- Follow-up Center endpoints -----
+@api.get("/followup-center/templates")
+async def list_templates(user: dict = Depends(get_current_user)):
+    # Expose templates (static) + studio name so frontend can preview
+    studio = await db.studios.find_one({"id": user["studio_id"]}, {"_id": 0}) or {}
+    return {
+        "templates": [
+            {"key": k, "label": v["label"], "channel": v["channel"], "subject": v.get("subject"), "body": v["body"]}
+            for k, v in TEMPLATES.items()
+        ],
+        "recommended_action_labels": RECOMMENDED_ACTION_LABELS,
+        "studio_name": studio.get("name", ""),
+    }
+
+
+@api.get("/followup-center/queue")
+async def followup_queue(
+    user: dict = Depends(get_current_user),
+    limit: int = 100,
+):
+    """Priority list of estimates to follow-up today. Ordered by score desc."""
+    sid = user["studio_id"]
+    # Open estimates only
+    estimates = await db.estimates.find({
+        "studio_id": sid,
+        "status": {"$in": ["presentato", "in_attesa"]},
+    }, {"_id": 0}).to_list(2000)
+
+    # Fetch all reminders for these estimates in one go
+    est_ids = [e["id"] for e in estimates]
+    all_reminders = await db.reminders.find({
+        "studio_id": sid,
+        "estimate_id": {"$in": est_ids},
+    }, {"_id": 0}).to_list(5000)
+    by_est: dict[str, list] = {}
+    for r in all_reminders:
+        by_est.setdefault(r["estimate_id"], []).append(r)
+
+    # Patients in one batch
+    pat_ids = list({e["patient_id"] for e in estimates})
+    patients = await db.patients.find({"id": {"$in": pat_ids}}, {"_id": 0}).to_list(5000)
+    pat_map = {p["id"]: p for p in patients}
+
+    queue = []
+    for e in estimates:
+        priors = by_est.get(e["id"], [])
+        score, action = compute_followup_score(e, priors)
+        pat = pat_map.get(e["patient_id"]) or {}
+        last_contact = None
+        if priors:
+            last_contact = max((r.get("sent_at") for r in priors if r.get("sent_at")), default=None)
+        presented = e.get("presented_at")
+        days_since = None
+        if presented:
+            try:
+                dpres = datetime.fromisoformat(presented).date() if "T" in presented else date.fromisoformat(presented)
+                days_since = (date.today() - dpres).days
+            except Exception:
+                days_since = None
+        queue.append({
+            "estimate_id": e["id"],
+            "estimate_title": e["title"],
+            "estimate_amount": e["total_amount"],
+            "estimate_status": e["status"],
+            "patient_id": e["patient_id"],
+            "patient_name": pat.get("full_name", "—"),
+            "patient_phone": pat.get("phone", ""),
+            "patient_email": pat.get("email", ""),
+            "presented_at": presented,
+            "days_since": days_since,
+            "next_followup_date": e.get("next_followup_date"),
+            "last_contact_at": last_contact,
+            "reminders_count": len(priors),
+            "score": score,
+            "recommended_action": action,
+            "recommended_action_label": RECOMMENDED_ACTION_LABELS[action],
+        })
+    queue.sort(key=lambda x: (-x["score"], x["days_since"] or 999))
+    return queue[:limit]
+
+
+@api.post("/reminders")
+async def create_reminder(body: ReminderIn, user: dict = Depends(get_current_user)):
+    # Validate patient is in same studio
+    pat = await db.patients.find_one({"id": body.patient_id, "studio_id": user["studio_id"]}, {"_id": 0})
+    if not pat:
+        raise HTTPException(404, "Paziente non trovato")
+    if body.estimate_id:
+        est = await db.estimates.find_one({"id": body.estimate_id, "studio_id": user["studio_id"]}, {"_id": 0})
+        if not est:
+            raise HTTPException(404, "Preventivo non trovato")
+
+    rid = str(uuid.uuid4())
+    now = now_iso()
+    doc = {
+        "id": rid,
+        "studio_id": user["studio_id"],
+        "patient_id": body.patient_id,
+        "estimate_id": body.estimate_id,
+        "channel": body.channel,
+        "template_key": body.template_key,
+        "subject": body.subject,
+        "message_text": body.message_text,
+        "sent_at": now,
+        "sent_by": user["id"],
+        "sent_by_name": user.get("full_name", ""),
+        "status": "sent",
+        "status_updated_at": now,
+        "outcome_notes": "",
+    }
+    await db.reminders.insert_one(doc)
+    doc.pop("_id", None)
+    return doc
+
+
+@api.put("/reminders/{rid}/status")
+async def update_reminder_status(rid: str, body: ReminderStatusIn, user: dict = Depends(get_current_user)):
+    rem = await db.reminders.find_one({"id": rid, "studio_id": user["studio_id"]})
+    if not rem:
+        raise HTTPException(404, "Reminder non trovato")
+    now = now_iso()
+    await db.reminders.update_one(
+        {"id": rid},
+        {"$set": {"status": body.status, "status_updated_at": now, "outcome_notes": body.outcome_notes or ""}},
+    )
+    # If status is accepted/rejected, sync the linked estimate's status too
+    if rem.get("estimate_id") and body.status in ("accepted", "rejected"):
+        new_est_status = "accettato" if body.status == "accepted" else "rifiutato"
+        await db.estimates.update_one(
+            {"id": rem["estimate_id"], "studio_id": user["studio_id"]},
+            {"$set": {"status": new_est_status}},
+        )
+    updated = await db.reminders.find_one({"id": rid}, {"_id": 0})
+    return updated
+
+
+@api.get("/reminders")
+async def list_reminders(
+    user: dict = Depends(get_current_user),
+    patient_id: Optional[str] = None,
+    estimate_id: Optional[str] = None,
+    template_key: Optional[str] = None,
+):
+    q = {"studio_id": user["studio_id"]}
+    if patient_id:
+        q["patient_id"] = patient_id
+    if estimate_id:
+        q["estimate_id"] = estimate_id
+    if template_key:
+        q["template_key"] = template_key
+    rows = await db.reminders.find(q, {"_id": 0}).sort("sent_at", -1).to_list(2000)
+    # attach patient name for listing convenience
+    pat_ids = list({r["patient_id"] for r in rows})
+    if pat_ids:
+        pats = await db.patients.find({"id": {"$in": pat_ids}}, {"_id": 0, "id": 1, "full_name": 1}).to_list(2000)
+        pm = {p["id"]: p["full_name"] for p in pats}
+        for r in rows:
+            r["patient_name"] = pm.get(r["patient_id"], "—")
+    return rows
+
+
+@api.get("/followup-center/ab-stats")
+async def ab_stats(user: dict = Depends(get_current_user)):
+    sid = user["studio_id"]
+
+    def empty_metrics():
+        return {
+            "sent": 0, "delivered": 0, "read": 0, "replied": 0,
+            "appt_booked": 0, "accepted": 0, "rejected": 0, "no_response": 0,
+            "reply_rate": 0.0, "booking_rate": 0.0, "acceptance_rate": 0.0,
+            "avg_hours_to_conversion": None,
+        }
+
+    buckets = {k: empty_metrics() for k in ("wa_template_a", "wa_template_b", "email_reminder")}
+    times_to_conv: dict[str, list] = {k: [] for k in buckets}
+
+    rems = await db.reminders.find({"studio_id": sid}, {"_id": 0}).to_list(5000)
+    for r in rems:
+        k = r.get("template_key")
+        if k not in buckets:
+            continue
+        b = buckets[k]
+        b["sent"] += 1
+        st = r.get("status", "sent")
+        if st == "delivered":
+            b["delivered"] += 1
+        elif st == "read":
+            b["read"] += 1
+        elif st == "replied":
+            b["replied"] += 1
+        elif st == "appt_booked":
+            b["appt_booked"] += 1
+        elif st == "accepted":
+            b["accepted"] += 1
+        elif st == "rejected":
+            b["rejected"] += 1
+        elif st == "no_response":
+            b["no_response"] += 1
+
+        # Consider any "forward" status (read/replied/booked/accepted) as engagement
+        # time-to-conversion only for accepted reminders
+        if st == "accepted" and r.get("sent_at") and r.get("status_updated_at"):
+            try:
+                t0 = datetime.fromisoformat(r["sent_at"])
+                t1 = datetime.fromisoformat(r["status_updated_at"])
+                hrs = (t1 - t0).total_seconds() / 3600
+                if hrs >= 0:
+                    times_to_conv[k].append(hrs)
+            except Exception:
+                pass
+
+    # Derived rates
+    for k, b in buckets.items():
+        sent = max(1, b["sent"])
+        engaged = b["replied"] + b["appt_booked"] + b["accepted"]
+        booked = b["appt_booked"] + b["accepted"]
+        b["reply_rate"] = round(engaged * 100 / sent, 1)
+        b["booking_rate"] = round(booked * 100 / sent, 1)
+        b["acceptance_rate"] = round(b["accepted"] * 100 / sent, 1)
+        if times_to_conv[k]:
+            b["avg_hours_to_conversion"] = round(sum(times_to_conv[k]) / len(times_to_conv[k]), 1)
+
+    # Winner: higher acceptance_rate; tiebreaker booking_rate; require min 5 sent each
+    winner = None
+    a, b_ = buckets["wa_template_a"], buckets["wa_template_b"]
+    if a["sent"] >= 5 and b_["sent"] >= 5:
+        if a["acceptance_rate"] > b_["acceptance_rate"]:
+            winner = "wa_template_a"
+        elif b_["acceptance_rate"] > a["acceptance_rate"]:
+            winner = "wa_template_b"
+        else:
+            winner = "tie"
+    return {"buckets": buckets, "winner": winner}
+
+
+app.include_router(api)
+
+
+
+async def seed_reminders_if_missing():
+    """Add demo reminders for the demo studio if none exist.
+    Generates mixed template A/B + email outcomes to power the A/B dashboard."""
+    studio = await db.studios.find_one({"name": DEMO_STUDIO_NAME})
+    if not studio:
+        return
+    sid = studio["id"]
+    existing = await db.reminders.count_documents({"studio_id": sid})
+    if existing > 0:
+        logger.info("Demo reminders already exist, skipping")
+        return
+    estimates = await db.estimates.find({"studio_id": sid}, {"_id": 0}).to_list(500)
+    if not estimates:
+        return
+    users_list = await db.users.find({"studio_id": sid}, {"_id": 0, "id": 1, "full_name": 1}).to_list(10)
+    if not users_list:
+        return
+
+    # Template A: 12 sent, skewed toward accepted/booked (better performer)
+    # Template B: 10 sent, skewed toward replied/no_response (worse performer)
+    # Email: 8 sent, mixed
+    plan = [
+        ("wa_template_a", 12, {"accepted": 4, "appt_booked": 3, "replied": 2, "read": 2, "no_response": 1}),
+        ("wa_template_b", 10, {"accepted": 2, "appt_booked": 2, "replied": 2, "no_response": 3, "delivered": 1}),
+        ("email_reminder", 8, {"accepted": 1, "appt_booked": 1, "replied": 2, "read": 2, "no_response": 2}),
+    ]
+
+    pool = list(estimates)
+    random.shuffle(pool)
+    idx = 0
+    now = datetime.now(timezone.utc)
+
+    for tpl_key, count, outcome_dist in plan:
+        outcomes = []
+        for status, n in outcome_dist.items():
+            outcomes.extend([status] * n)
+        while len(outcomes) < count:
+            outcomes.append("no_response")
+        random.shuffle(outcomes)
+
+        for i in range(count):
+            if idx >= len(pool):
+                break
+            est = pool[idx]
+            idx += 1
+            sent_offset_days = random.randint(2, 25)
+            sent_at = now - timedelta(days=sent_offset_days, hours=random.randint(0, 23))
+            status = outcomes[i]
+            if status == "sent":
+                su = sent_at
+            elif status in ("delivered", "read"):
+                su = sent_at + timedelta(hours=random.randint(1, 48))
+            elif status in ("replied", "appt_booked"):
+                su = sent_at + timedelta(hours=random.randint(4, 72))
+            elif status == "accepted":
+                su = sent_at + timedelta(hours=random.randint(12, 120))
+            elif status == "rejected":
+                su = sent_at + timedelta(hours=random.randint(6, 96))
+            else:
+                su = sent_at + timedelta(days=random.randint(3, 10))
+
+            tpl = TEMPLATES[tpl_key]
+            user = random.choice(users_list)
+            pat = await db.patients.find_one({"id": est["patient_id"]}, {"_id": 0}) or {}
+            variables = {
+                "patient_first_name": (pat.get("full_name") or "Paziente").split(" ")[0],
+                "sender_name": user["full_name"],
+                "studio_name": studio["name"],
+                "estimate_title": est.get("title", ""),
+                "estimate_amount": f"{int(est.get('total_amount') or 0)}",
+                "notes": "",
+            }
+            rendered = render_template(tpl, variables)
+
+            await db.reminders.insert_one({
+                "id": str(uuid.uuid4()),
+                "studio_id": sid,
+                "patient_id": est["patient_id"],
+                "estimate_id": est["id"],
+                "channel": tpl["channel"],
+                "template_key": tpl_key,
+                "subject": rendered["subject"],
+                "message_text": rendered["body"],
+                "sent_at": sent_at.isoformat(),
+                "sent_by": user["id"],
+                "sent_by_name": user["full_name"],
+                "status": status,
+                "status_updated_at": su.isoformat(),
+                "outcome_notes": "",
+            })
+    logger.info("Demo reminders seeded")
+
+
 @app.on_event("startup")
 async def startup():
     await db.users.create_index("email", unique=True)
@@ -944,8 +1417,12 @@ async def startup():
     await db.appointments.create_index("studio_id")
     await db.payments.create_index("studio_id")
     await db.installments.create_index("payment_id")
+    await db.reminders.create_index("studio_id")
+    await db.reminders.create_index("estimate_id")
+    await db.reminders.create_index("patient_id")
     await db.login_attempts.create_index("key", unique=True)
     await seed_demo()
+    await seed_reminders_if_missing()
 
 
 @app.on_event("shutdown")

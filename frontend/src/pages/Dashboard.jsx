@@ -68,8 +68,8 @@ export default function Dashboard() {
             <p className="mt-1 text-sm text-white/80">Le priorità operative dello studio in tempo reale.</p>
           </div>
           <div className="flex gap-2">
-            <Link to="/pazienti" data-testid="dash-cta-new-patient" className="inline-flex items-center gap-2 px-4 h-11 rounded-lg bg-white text-df-primary font-semibold text-sm hover:bg-slate-100 transition">
-              <Users size={16} /> Nuovo paziente
+            <Link to="/recupero" data-testid="dash-cta-followup" className="inline-flex items-center gap-2 px-4 h-11 rounded-lg bg-white text-df-primary font-semibold text-sm hover:bg-slate-100 transition">
+              <Activity size={16} /> Centro recupero
             </Link>
             <Link to="/preventivi" data-testid="dash-cta-new-estimate" className="inline-flex items-center gap-2 px-4 h-11 rounded-lg bg-sky-500 text-white font-semibold text-sm hover:bg-sky-600 transition">
               <FileText size={16} /> Nuovo preventivo
@@ -120,7 +120,7 @@ export default function Dashboard() {
         </Panel>
 
         {/* Follow-ups preventivi */}
-        <Panel title="Preventivi da richiamare oggi" to="/preventivi" count={followups.length} testid="panel-followups">
+        <Panel title="Preventivi da richiamare oggi" to="/recupero" count={followups.length} testid="panel-followups">
           {followups.length === 0 ? (
             <EmptyRow icon={CheckCircle2} text="Nessun follow-up da gestire. Ottimo lavoro!" />
           ) : (

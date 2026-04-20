@@ -12,6 +12,7 @@ import PatientDetail from "@/pages/PatientDetail";
 import Estimates from "@/pages/Estimates";
 import Appointments from "@/pages/Appointments";
 import Payments from "@/pages/Payments";
+import FollowupCenter from "@/pages/FollowupCenter";
 import Settings from "@/pages/Settings";
 import Layout from "@/components/Layout";
 
@@ -47,6 +48,9 @@ function App() {
           </Route>
           <Route element={<Guarded title="Preventivi" />}>
             <Route path="/preventivi" element={<Estimates />} />
+          </Route>
+          <Route element={<Guarded title="Centro recupero" />}>
+            <Route path="/recupero" element={<FollowupCenter />} />
           </Route>
           <Route element={<Guarded title="Agenda" />}>
             <Route path="/appuntamenti" element={<Appointments />} />

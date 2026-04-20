@@ -1,12 +1,12 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, Calendar, Wallet } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Wallet, Sparkles } from "lucide-react";
 
 const items = [
   { to: "/dashboard", label: "Home", icon: LayoutDashboard, testid: "bottomnav-dashboard" },
+  { to: "/recupero", label: "Recupero", icon: Sparkles, testid: "bottomnav-followup" },
   { to: "/pazienti", label: "Pazienti", icon: Users, testid: "bottomnav-patients" },
-  { to: "/preventivi", label: "Preventivi", icon: FileText, testid: "bottomnav-estimates" },
-  { to: "/appuntamenti", label: "Agenda", icon: Calendar, testid: "bottomnav-appointments" },
+  { to: "/preventivi", label: "Prev.", icon: FileText, testid: "bottomnav-estimates" },
   { to: "/pagamenti", label: "Pagam.", icon: Wallet, testid: "bottomnav-payments" },
 ];
 

@@ -1,11 +1,12 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, Calendar, Wallet, Settings, LogOut } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Calendar, Wallet, Settings, LogOut, Sparkles } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABELS } from "../lib/format";
 
 const links = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, testid: "sidebar-dashboard-link" },
+  { to: "/recupero", label: "Centro recupero", icon: Sparkles, testid: "sidebar-followup-link", highlight: true },
   { to: "/pazienti", label: "Pazienti", icon: Users, testid: "sidebar-patients-link" },
   { to: "/preventivi", label: "Preventivi", icon: FileText, testid: "sidebar-estimates-link" },
   { to: "/appuntamenti", label: "Appuntamenti", icon: Calendar, testid: "sidebar-appointments-link" },
