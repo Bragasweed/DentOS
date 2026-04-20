@@ -13,6 +13,9 @@ import Estimates from "@/pages/Estimates";
 import Appointments from "@/pages/Appointments";
 import Payments from "@/pages/Payments";
 import FollowupCenter from "@/pages/FollowupCenter";
+import RevenueDashboard from "@/pages/RevenueDashboard";
+import RevenueRadar from "@/pages/RevenueRadar";
+import Automations from "@/pages/Automations";
 import Settings from "@/pages/Settings";
 import Layout from "@/components/Layout";
 
@@ -51,6 +54,13 @@ function App() {
           </Route>
           <Route element={<Guarded title="Centro recupero" />}>
             <Route path="/recupero" element={<FollowupCenter />} />
+          </Route>
+          <Route element={<Guarded title="Revenue" />}>
+            <Route path="/revenue" element={<RevenueDashboard />} />
+            <Route path="/revenue/radar" element={<RevenueRadar />} />
+          </Route>
+          <Route element={<Guarded title="Automazioni" />}>
+            <Route path="/automations" element={<Automations />} />
           </Route>
           <Route element={<Guarded title="Agenda" />}>
             <Route path="/appuntamenti" element={<Appointments />} />

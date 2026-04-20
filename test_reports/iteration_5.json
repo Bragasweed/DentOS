@@ -1,0 +1,32 @@
+{
+  "summary": "Phase 3 frontend E2E testing complete. All 49 checks passed across the 3 new pages (Revenue Dashboard, Revenue Radar, Automations), sidebar + mobile bottom nav, and regression of existing modules (dashboard, pazienti, preventivi, appuntamenti, pagamenti, recupero, impostazioni). Seeded data (5 rules, 25 executed runs, 2 failed, 9 radar rows, 4 lost reasons, 8 weekly bars) all render correctly.",
+  "backend_issues": {"critical": [], "minor": []},
+  "frontend_issues": {
+    "ui_bugs": [],
+    "integration_issues": [],
+    "design_issues": [
+      {"screen": "Automations — Nuova regola dialog", "issues": ["Hydration error: <span> rendered as a child of <option> in the 'Assegna a' select (team members map). Browsers strip the span so the value still works, but React logs a hydration error. Recommend rendering plain text in <option> children (e.g. `{u.full_name} · {u.role}` directly without any wrapper)."]},
+      {"screen": "Automations — Dialog", "issues": ["A11y warning: Missing `Description` or `aria-describedby` on DialogContent. Add a <DialogDescription> element under <DialogHeader>."]},
+      {"screen": "Revenue Dashboard — weekly chart", "issues": ["Recharts console warning during initial mount: width(-1)/height(-1) of ResponsiveContainer. Transient (resolves after first paint) — can be silenced by setting minWidth/minHeight on the 56-high wrapper or using aspect."]}
+    ]
+  },
+  "test_report_links": ["/app/backend/tests/test_revenue_automations.py"],
+  "action_items": [
+    "[Low] Fix <span>-in-<option> hydration warning in Automations RuleForm team select (line ~289)",
+    "[Low] Add DialogDescription to 'Nuova regola' dialog for a11y",
+    "[Low] Optional: set explicit min dimensions on Recharts ResponsiveContainer to silence width(-1) warnings"
+  ],
+  "critical_code_review_comments": [
+    "Simulate scheduler returned '0 nuovi run, 0 eseguiti' on a freshly-seeded env (seed has already pre-populated 25 executed + 2 failed + 3 scheduled). Not a bug per se, but the button gives ambiguous UX when there is nothing to do — consider surfacing 'Niente da eseguire al momento' when created=0 and executed=0.",
+    "Automations.jsx uses `window.confirm` for delete — OK, but for UX consistency with rest of app consider a shadcn AlertDialog.",
+    "RevenueDashboard.jsx imports `todayISO`, `fmtDate` that are unused — minor cleanup."
+  ],
+  "updated_files": [],
+  "success_rate": {"backend": "n/a (skipped per request)", "frontend": "100% (49/49)"},
+  "test_credentials": "admin@dentalflow.it / DentalFlow2026! (from /app/memory/test_credentials.md)",
+  "seed_data_creation": "None; relied on existing Phase3 seed. Test created and then cleaned up one automation rule 'TEST_Regola_E2E'.",
+  "retest_needed": false,
+  "main_agent_can_self_test": true,
+  "context_for_next_testing_agent": "Phase 3 UI is fully functional. Sidebar/BottomNav wired, all 8 KPI testids present, 8 weekly recharts bars render, funnel has all 4 stages, templates/top-open/lost-reasons/MoM all populated, Radar shows 9 rows with top5 + email preview + /recupero CTA, Automations has 5 seeded rules, toggle works, simulate POSTs and toasts, new rule creation works and appears in list, 25 executed / 2 failed / 3 scheduled runs visible. Only cosmetic issues remain (option>span hydration, Dialog a11y, recharts mount warning).",
+  "rca of the issue": "N/A — no functional issues observed. The only non-functional warning worth fixing is the hydration error caused by the dev-tool `x-*` spans injected into <option> children in Automations.jsx; stripping the span (plain text in option) will remove it."
+}

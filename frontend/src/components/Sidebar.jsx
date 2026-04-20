@@ -1,12 +1,15 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, Calendar, Wallet, Settings, LogOut, Sparkles } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Calendar, Wallet, Settings, LogOut, Sparkles, Target, Radar, Cog } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABELS } from "../lib/format";
 
 const links = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, testid: "sidebar-dashboard-link" },
-  { to: "/recupero", label: "Centro recupero", icon: Sparkles, testid: "sidebar-followup-link", highlight: true },
+  { to: "/recupero", label: "Centro recupero", icon: Sparkles, testid: "sidebar-followup-link" },
+  { to: "/revenue", label: "Revenue", icon: Target, testid: "sidebar-revenue-link" },
+  { to: "/revenue/radar", label: "Revenue Radar", icon: Radar, testid: "sidebar-radar-link" },
+  { to: "/automations", label: "Automazioni", icon: Cog, testid: "sidebar-automations-link" },
   { to: "/pazienti", label: "Pazienti", icon: Users, testid: "sidebar-patients-link" },
   { to: "/preventivi", label: "Preventivi", icon: FileText, testid: "sidebar-estimates-link" },
   { to: "/appuntamenti", label: "Appuntamenti", icon: Calendar, testid: "sidebar-appointments-link" },
