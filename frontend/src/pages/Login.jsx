@@ -57,7 +57,7 @@ export default function Login() {
           <div className="flex items-center gap-2.5 mb-10">
             <div className="w-10 h-10 rounded-xl bg-df-primary flex items-center justify-center text-white font-bold text-xl" style={{ fontFamily: "Manrope" }}>D</div>
             <div>
-              <div className="font-bold tracking-tight text-lg" style={{ fontFamily: "Manrope" }}>DentalFlow AI</div>
+              <div className="font-bold tracking-tight text-lg" style={{ fontFamily: "Manrope" }}>HuDent AI</div>
               <div className="text-xs text-slate-500">Studio operativo · Italia</div>
             </div>
           </div>

@@ -27,7 +27,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-df-primary flex items-center justify-center text-white font-bold text-lg" style={{ fontFamily: "Manrope" }}>D</div>
           <div>
-            <div className="font-bold text-slate-900 tracking-tight" style={{ fontFamily: "Manrope" }}>DentalFlow AI</div>
+            <div className="font-bold text-slate-900 tracking-tight" style={{ fontFamily: "Manrope" }}>HuDent AI</div>
             <div className="text-xs text-slate-500">Studio operativo</div>
           </div>
         </div>

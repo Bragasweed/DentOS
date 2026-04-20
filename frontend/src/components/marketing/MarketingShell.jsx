@@ -19,7 +19,7 @@ export default function MarketingShell({ children }) {
               <Stethoscope size={18} />
             </div>
             <div>
-              <p className="text-sm font-semibold tracking-tight">DentalFlow AI</p>
+              <p className="text-sm font-semibold tracking-tight">HuDent AI</p>
               <p className="text-xs text-slate-500">Commercial Suite</p>
             </div>
           </NavLink>

@@ -1,4 +1,4 @@
-"""DentalFlow AI - Backend API test suite (pytest)
+"""HuDent AI - Backend API test suite (pytest)
 Covers: auth, patients, estimates, appointments, payments/installments,
 call logs, tasks, dashboard, search, multi-tenant isolation, brute-force."""
 import os

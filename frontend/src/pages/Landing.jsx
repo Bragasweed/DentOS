@@ -103,7 +103,7 @@ export default function Landing() {
             <span className="block text-df-primary">Riduci i pazienti persi.</span>
           </h1>
           <p className="mt-4 max-w-xl text-base text-slate-600 sm:text-lg">
-            DentalFlow AI unisce agenda, follow-up e revenue in un solo flusso operativo. Meno lavoro manuale, più preventivi accettati.
+            HuDent AI unisce agenda, follow-up e revenue in un solo flusso operativo. Meno lavoro manuale, più preventivi accettati.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg" className="bg-df-primary hover:bg-blue-900" data-testid="landing-cta-book-demo">
