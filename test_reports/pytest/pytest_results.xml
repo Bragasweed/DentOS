@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?><testsuites name="pytest tests"><testsuite name="pytest" errors="0" failures="8" skipped="0" tests="21" time="23.049" timestamp="2026-04-20T00:54:54.861943+00:00" hostname="agent-env-a17f151d-4bd4-41e0-bddc-efcfc3b4e9bc"><testcase classname="backend.tests.test_dentalflow_api.TestAuth" name="test_login_success" time="20.140" /><testcase classname="backend.tests.test_dentalflow_api.TestAuth" name="test_login_bad_password" time="0.278" /><testcase classname="backend.tests.test_dentalflow_api.TestAuth" name="test_me" time="0.354" /><testcase classname="backend.tests.test_dentalflow_api.TestAuth" name="test_me_unauth" time="0.054"><failure message="assert 200 == 401&#10; +  where 200 = &lt;Response [200]&gt;.status_code">backend/tests/test_dentalflow_api.py:88: in test_me_unauth
+    assert r.status_code == 401
+E   assert 200 == 401
+E    +  where 200 = &lt;Response [200]&gt;.status_code</failure></testcase><testcase classname="backend.tests.test_dentalflow_api.TestAuth" name="test_register_and_token" time="0.283" /><testcase classname="backend.tests.test_dentalflow_api.TestAuth" name="test_invite_member" time="0.286"><failure message="AssertionError: assert 'test-invite-...fd@example.it' == 'TEST-invite-...fd@example.it'&#10;  &#10;  - TEST-invite-a66708fd@example.it&#10;  ? ^^^^&#10;  + test-invite-a66708fd@example.it&#10;  ? ^^^^">backend/tests/test_dentalflow_api.py:101: in test_invite_member
+    assert new_u["email"] == email
+E   AssertionError: assert 'test-invite-...fd@example.it' == 'TEST-invite-...fd@example.it'
+E     
+E     - TEST-invite-a66708fd@example.it
+E     ? ^^^^
+E     + test-invite-a66708fd@example.it
+E     ? ^^^^</failure></testcase><testcase classname="backend.tests.test_dentalflow_api.TestPatients" name="test_list_patients_seeded" time="0.066"><failure message="assert (True and 0 &gt;= 20)&#10; +  where True = isinstance([], list)&#10; +  and   0 = len([])">backend/tests/test_dentalflow_api.py:114: in test_list_patients_seeded
+    assert isinstance(data, list) and len(data) &gt;= 20
+E   assert (True and 0 &gt;= 20)
+E    +  where True = isinstance([], list)
+E    +  and   0 = len([])</failure></testcase><testcase classname="backend.tests.test_dentalflow_api.TestPatients" name="test_search_and_filter" time="0.126" /><testcase classname="backend.tests.test_dentalflow_api.TestPatients" name="test_create_get_update_patient" time="0.170" /><testcase classname="backend.tests.test_dentalflow_api.TestEstimates" name="test_list_with_patient_name" time="0.067"><failure message="assert 0 &gt;= 22&#10; +  where 0 = len([])">backend/tests/test_dentalflow_api.py:161: in test_list_with_patient_name
+    assert len(rows) &gt;= 22
+E   assert 0 &gt;= 22
+E    +  where 0 = len([])</failure></testcase><testcase classname="backend.tests.test_dentalflow_api.TestEstimates" name="test_followups_today" time="0.066" /><testcase classname="backend.tests.test_dentalflow_api.TestEstimates" name="test_create_update_estimate" time="0.170" /><testcase classname="backend.tests.test_dentalflow_api.TestAppointments" name="test_list_with_filters" time="0.054"><failure message="assert (True and 0 &gt; 0)&#10; +  where True = isinstance([], list)&#10; +  and   0 = len([])">backend/tests/test_dentalflow_api.py:193: in test_list_with_filters
+    assert isinstance(rows, list) and len(rows) &gt; 0
+E   assert (True and 0 &gt; 0)
+E    +  where True = isinstance([], list)
+E    +  and   0 = len([])</failure></testcase><testcase classname="backend.tests.test_dentalflow_api.TestAppointments" name="test_update_status_noshow_flags_patient" time="0.230" /><testcase classname="backend.tests.test_dentalflow_api.TestPayments" name="test_list_and_create_payment_with_installments" time="0.060"><failure message="assert 0 &gt;= 1&#10; +  where 0 = len([])">backend/tests/test_dentalflow_api.py:219: in test_list_and_create_payment_with_installments
+    assert len(rows) &gt;= 1
+E   assert 0 &gt;= 1
+E    +  where 0 = len([])</failure></testcase><testcase classname="backend.tests.test_dentalflow_api.TestPayments" name="test_overdue" time="0.064" /><testcase classname="backend.tests.test_dentalflow_api.TestCallLogs" name="test_create_call_log" time="0.198" /><testcase classname="backend.tests.test_dentalflow_api.TestTasks" name="test_tasks_crud" time="0.056"><failure message="assert 0 &gt;= 4&#10; +  where 0 = len([])&#10; +    where [] = json()&#10; +      where json = &lt;Response [200]&gt;.json">backend/tests/test_dentalflow_api.py:264: in test_tasks_crud
+    assert len(r.json()) &gt;= 4
+E   assert 0 &gt;= 4
+E    +  where 0 = len([])
+E    +    where [] = json()
+E    +      where json = &lt;Response [200]&gt;.json</failure></testcase><testcase classname="backend.tests.test_dentalflow_api.TestDashboard" name="test_dashboard_structure" time="0.061" /><testcase classname="backend.tests.test_dentalflow_api.TestDashboard" name="test_search" time="0.056" /><testcase classname="backend.tests.test_dentalflow_api.TestMultiTenantIsolation" name="test_isolation" time="0.058"><failure message="AssertionError: assert [{'birth_date...il': '', ...}] == []&#10;  &#10;  Left contains 2 more items, first extra item: {'birth_date': '', 'created_at': '2026-04-20T00:55:17.143410+00:00', 'created_by': '63b55da9-9732-499c-9ecb-061663515907', 'email': '', ...}&#10;  &#10;  Full diff:&#10;  - []&#10;  + [&#10;  +     {...&#10;  &#10;  ...Full output truncated (28 lines hidden), use '-vv' to show">backend/tests/test_dentalflow_api.py:299: in test_isolation
+    assert session.get(f"{API}/patients", headers=h).json() == []
+E   AssertionError: assert [{'birth_date...il': '', ...}] == []
+E     
+E     Left contains 2 more items, first extra item: {'birth_date': '', 'created_at': '2026-04-20T00:55:17.143410+00:00', 'created_by': '63b55da9-9732-499c-9ecb-061663515907', 'email': '', ...}
+E     
+E     Full diff:
+E     - []
+E     + [
+E     +     {...
+E     
+E     ...Full output truncated (28 lines hidden), use '-vv' to show</failure></testcase></testsuite></testsuites>
