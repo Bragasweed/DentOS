@@ -24,8 +24,8 @@ SaaS mobile-first, PWA-ready, italiano, per studi dentistici. Un "sistema operat
 - `admin_studio`: tutto incluso invito membri e delete paziente
 - `segreteria`, `dentista`, `amministrazione`: read+write sui propri moduli; no invito team
 
-## Implemented (MVP — 2026-02-20)
-### Backend (25/25 tests ✅)
+## Implemented (MVP — 2026-02-20 · Phase 2 — 2026-02-22)
+### Backend (33/33 tests ✅)
 - Auth: register (crea studio+owner), login, logout (idempotente), /me, invite team
 - Brute-force: lockout per (IP+email), reset al primo successo
 - Pazienti: CRUD + search + filter + detail bundle
@@ -35,18 +35,28 @@ SaaS mobile-first, PWA-ready, italiano, per studi dentistici. Un "sistema operat
 - Call logs, Tasks CRUD
 - Dashboard aggregata (KPI + today's lists)
 - Global search (pazienti)
-- Seed demo: 20 pazienti, 22 preventivi, 40 appuntamenti, 8 piani pagamento, 4 task
+- **Phase 2 · Follow-up Center**:
+  - `/api/followup-center/templates` — 2 WA + email + manual
+  - `/api/followup-center/queue` — prioritized list with conversion score 0-100 + recommended_action (call_now, send_wa_a, send_wa_b, send_email, archive_or_manual)
+  - `/api/reminders` (POST/GET) + `/api/reminders/{id}/status` (PUT) — create + conversion tracking (sent, delivered, read, replied, appt_booked, accepted, rejected, no_response). Accepted/rejected auto-syncs to linked estimate status.
+  - `/api/followup-center/ab-stats` — bucketed A/B comparison with reply/booking/acceptance rates + avg_hours_to_conversion + winner determination (min 5 sent each)
+- Seed demo: 20 pazienti, 22 preventivi, 40 appuntamenti, 8 piani pagamento, 4 task, **30 reminders (A=12, B=10, Email=8) con outcome mixati per A/B dashboard**
 
-### Frontend (E2E ~96% ✅)
+### Frontend (E2E 100% Phase 2 ✅)
 - Login + Register wizard (2 step onboarding studio)
 - Layout con Sidebar desktop + BottomNav mobile + TopBar con global search
-- Dashboard (banner "cose da fare oggi", 4 KPI card, 4 panel operativi)
+- Dashboard (banner "cose da fare oggi", 4 KPI card, 4 panel operativi, CTA verso Centro recupero)
 - Pazienti list con filtri chip + search
 - Patient detail con tab Timeline/Preventivi/Appuntamenti/Pagamenti + log chiamata + edit
 - Preventivi list con summary card + filter + dialog crea/modifica + follow-up
 - Appuntamenti con toggle Today/Week/List + date nav + status select inline
 - Pagamenti con overdue banner rosso + progress bar piano + toggle rata pagata
 - Impostazioni con profilo studio + team + invito collaboratore
+- **Phase 2 · Follow-up Center `/recupero`**:
+  - Tab "Priorità di oggi" — queue ordinata per score, con badge numerico, recommended_action pill colorato, CTA Chiama + Invia reminder
+  - Send reminder dialog con 4 template selezionabili, variable substitution (nome paziente / studio / importo), messaggio editabile
+  - "Ultimi reminder inviati" feed con inline status update
+  - Tab "A/B testing messaggi" — winner banner + 3 template card con metriche + barre di confronto per reply/booking/acceptance rate
 - Sonner toasts, empty states, loading states, `data-testid` ovunque
 
 ## Auth model (explained simply)
