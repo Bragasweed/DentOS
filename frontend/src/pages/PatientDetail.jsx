@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import { api } from "../lib/api";
 import { ArrowLeft, Phone, Mail, Calendar, FileText, Wallet, Plus, Edit3, PhoneCall } from "lucide-react";
@@ -16,7 +16,7 @@ export default function PatientDetail() {
   const [editOpen, setEditOpen] = useState(false);
   const [callOpen, setCallOpen] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     try {
       const { data } = await api.get(`/patients/${id}`);
       setData(data);
@@ -24,8 +24,8 @@ export default function PatientDetail() {
       toast.error("Paziente non trovato");
       nav("/pazienti");
     }
-  };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [id]);
+  }, [id, nav]);
+  useEffect(() => { load(); }, [load]);
 
   if (!data) return <div className="py-10 text-center text-slate-400">Caricamento…</div>;
   const { patient, appointments, estimates, payments, call_logs } = data;

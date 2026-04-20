@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { Link } from "react-router-dom";
 import { fmtEUR, fmtDate } from "../lib/format";
@@ -46,7 +46,7 @@ export default function RevenueDashboard() {
   });
   const [staff, setStaff] = useState([]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     try {
       const params = {};
@@ -55,8 +55,8 @@ export default function RevenueDashboard() {
       setData(data);
     } catch { toast.error("Errore caricamento revenue"); }
     finally { setLoading(false); }
-  };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [filters]);
+  }, [filters]);
+  useEffect(() => { load(); }, [load]);
   useEffect(() => { api.get("/auth/team").then(({ data }) => setStaff(data)); }, []);
 
   if (loading || !data) return <div className="py-14 text-center text-slate-400" data-testid="revenue-loading">Caricamento…</div>;
