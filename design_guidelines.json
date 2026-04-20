@@ -1,0 +1,156 @@
+{
+  "theme_archetype": {
+    "domain": "Healthcare/Medical SaaS",
+    "theme": "light",
+    "archetype": "Hybrid 1/4 (Organic Trust + Swiss Clarity)",
+    "description": "A refined, professional medical dashboard focused on operational clarity. Blends the warmth and trust of Archetype 1 (Organic & Earthy) with the functional precision of Archetype 4 (Swiss & High-Contrast). Avoids childish or generic SaaS looks."
+  },
+  "colors": {
+    "background": "#F8FAFC",
+    "surface": "#FFFFFF",
+    "primary": {
+      "DEFAULT": "#0C315B",
+      "hover": "#1E3A8A",
+      "foreground": "#FFFFFF",
+      "description": "Deep Trust Blue. Used for primary CTAs and sidebar active states."
+    },
+    "secondary": {
+      "DEFAULT": "#F1F5F9",
+      "hover": "#E2E8F0",
+      "foreground": "#0F172A"
+    },
+    "accent": {
+      "DEFAULT": "#0EA5E9",
+      "foreground": "#FFFFFF",
+      "description": "Sky Blue. Used for subtle highlights and progress indicators."
+    },
+    "semantic": {
+      "success": "#16A34A",
+      "success_bg": "#DCFCE7",
+      "warning": "#D97706",
+      "warning_bg": "#FEF3C7",
+      "destructive": "#DC2626",
+      "destructive_bg": "#FEE2E2",
+      "info": "#0284C7",
+      "info_bg": "#E0F2FE"
+    },
+    "text": {
+      "primary": "#0F172A",
+      "secondary": "#475569",
+      "tertiary": "#94A3B8"
+    },
+    "border": "#E2E8F0",
+    "input": "#E2E8F0",
+    "ring": "#0EA5E9"
+  },
+  "typography": {
+    "fonts": {
+      "heading": "Manrope",
+      "body": "IBM Plex Sans",
+      "mono": "JetBrains Mono"
+    },
+    "rules": {
+      "h1": "text-3xl sm:text-4xl font-bold tracking-tight text-slate-900",
+      "h2": "text-2xl sm:text-3xl font-bold tracking-tight text-slate-900",
+      "h3": "text-xl font-semibold tracking-tight text-slate-800",
+      "h4": "text-lg font-medium text-slate-800",
+      "body": "text-base text-slate-600 leading-relaxed",
+      "small": "text-sm text-slate-500",
+      "label": "text-xs font-semibold uppercase tracking-[0.05em] text-slate-500"
+    }
+  },
+  "spacing_and_layout": {
+    "grid_system": "Control Room Grid (Dense, functional, optimized for data)",
+    "container_padding": "p-4 sm:p-6 lg:p-8",
+    "card_padding": "p-5 sm:p-6",
+    "gap_standard": "gap-4 sm:gap-6",
+    "radius": {
+      "card": "rounded-xl",
+      "button": "rounded-lg",
+      "input": "rounded-md"
+    },
+    "shadows": {
+      "card": "shadow-sm",
+      "dropdown": "shadow-lg",
+      "floating": "shadow-xl"
+    },
+    "structure": {
+      "desktop": "Sidebar (w-64, sticky, h-screen) + Main Content Area",
+      "mobile": "Top Header (sticky, z-50) + Main Content Area + Bottom Navigation (sticky, bottom-0, z-50)"
+    }
+  },
+  "components": {
+    "Button": {
+      "style": "Solid colors, no gradients. Use ring on focus.",
+      "variants": {
+        "default": "bg-[#0C315B] text-white hover:bg-[#1E3A8A]",
+        "outline": "border border-slate-200 bg-transparent text-slate-900 hover:bg-slate-50",
+        "ghost": "bg-transparent text-slate-600 hover:bg-slate-100 hover:text-slate-900",
+        "destructive": "bg-[#DC2626] text-white hover:bg-[#B91C1C]"
+      }
+    },
+    "Card": {
+      "style": "Flat background (bg-white), 1px subtle border (border-slate-200), minimal shadow (shadow-sm). Used for KPI metrics and dashboard panels."
+    },
+    "Input": {
+      "style": "border-slate-200 bg-white text-slate-900 focus-visible:ring-[#0EA5E9] focus-visible:border-transparent"
+    },
+    "Table": {
+      "style": "Clean rows, bottom border only on cells (border-slate-100). Hover state on rows (hover:bg-slate-50)."
+    },
+    "Badge": {
+      "style": "Soft backgrounds with dark text for status. No outlines.",
+      "variants": {
+        "success": "bg-[#DCFCE7] text-[#16A34A]",
+        "warning": "bg-[#FEF3C7] text-[#D97706]",
+        "destructive": "bg-[#FEE2E2] text-[#DC2626]"
+      }
+    }
+  },
+  "interactions": {
+    "hover": "Subtle background color shifts and translation (-translate-y-[1px] for cards)",
+    "focus": "Clear ring (focus:ring-2 focus:ring-[#0EA5E9] focus:ring-offset-1)",
+    "transitions": "transition-all duration-200 ease-in-out"
+  },
+  "iconography": {
+    "library": "lucide-react",
+    "style": "Clean, line-based, 2px stroke width. Consistent sizing (18px for buttons, 24px for sidebar, 20px for cards)."
+  },
+  "media": {
+    "images": [
+      {
+        "category": "auth_background",
+        "url": "https://images.pexels.com/photos/4269276/pexels-photo-4269276.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Contemporary dental office interior with high-tech equipment and stylish design. Use as a split-screen background for the login/register page."
+      },
+      {
+        "category": "dentist_avatar_placeholder",
+        "url": "https://images.unsplash.com/photo-1729162128021-f37dca3ff30d?crop=entropy&cs=srgb&fm=jpg&ixid=M3w4NjY2NjV8MHwxfHNlYXJjaHwxfHxwcm9mZXNzaW9uYWwlMjBkZW50aXN0JTIwcG9ydHJhaXR8ZW58MHx8fHwxNzc2NjQ1Njc1fDA&ixlib=rb-4.1.0&q=85",
+        "description": "Professional male dentist in a white coat. Used as default avatar for the main doctor role."
+      },
+      {
+        "category": "patient_avatar_placeholder",
+        "url": "https://images.pexels.com/photos/3845843/pexels-photo-3845843.jpeg?auto=compress&cs=tinysrgb&dpr=2&h=650&w=940",
+        "description": "Happy patient holding a mirror. Used for placeholder patient profiles in the CRM section."
+      }
+    ]
+  },
+  "features_spec": {
+    "dashboard_today": "Prioritize 'Cose da fare oggi' (Today's Tasks) prominently. Use a vertical list or bento grid for upcoming appointments, pending quotes, and late payments.",
+    "kpi_cards": "Top row of the dashboard. Show key metrics: Ricavi (Revenue), Preventivi Accettati (Quotes accepted), No-Show Rate, Appuntamenti Oggi.",
+    "navigation": "Desktop: Sidebar with Logo, Links (Dashboard, Appuntamenti, Preventivi, Pazienti, Impostazioni), User Profile at bottom. Mobile: Bottom Navigation for main links, Header for Page Title & Notifications.",
+    "pwa_ready": "Ensure touch targets are large enough (min 44px) for mobile. Use responsive tables or card-based lists for patient data on small screens."
+  },
+  "testing": {
+    "data_testid_convention": "kebab-case, role-based. e.g., data-testid='sidebar-dashboard-link', data-testid='kpi-revenue-card', data-testid='today-tasks-list'."
+  },
+  "instructions_to_main_agent": [
+    "Install and setup Shadcn UI completely. Do not use plain HTML for interactive components.",
+    "Ensure the application is mobile-first. The bottom navigation bar on mobile is crucial for usability.",
+    "Implement the 'Control Room' grid layout for the dashboard. It needs to be dense but highly readable.",
+    "Use Manrope for headings and IBM Plex Sans for body text. Verify they are imported correctly from Google Fonts.",
+    "Apply the designated color palette in tailwind.config.js.",
+    "Add 'data-testid' to all interactive and structural elements.",
+    "Use the provided image URLs for auth background and placeholders. Do NOT use fake placeholder image services."
+  ]
+}
