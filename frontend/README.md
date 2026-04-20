@@ -9,10 +9,11 @@ cp frontend/env.example frontend/.env
 Valore principale:
 
 - `REACT_APP_BACKEND_URL` (es: `http://localhost:8000`, **senza** `/api`).
+- In sviluppo locale puoi anche **non impostarla** e usare il proxy CRA verso `http://localhost:8000`.
 
 Se non è impostata, l'app usa fallback automatico:
 
-- in locale (`localhost`/`127.0.0.1`) usa `http://<host>:8000`
+- in locale (`localhost`/`127.0.0.1`) usa path relativo `/api` (passando dal proxy CRA)
 - in deploy usa path relativo `/api`
 
 ---

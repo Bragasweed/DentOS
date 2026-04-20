@@ -6,12 +6,11 @@ function getBackendBaseUrl() {
     return configured.replace(/\/+$/, "");
   }
 
-  // Local DX fallback: CRA on :3000 + FastAPI on :8000.
+  // In local dev prefer same-origin + CRA proxy to avoid browser CORS noise.
   if (typeof window !== "undefined") {
     const host = window.location.hostname;
-    const protocol = window.location.protocol || "http:";
     const isLocal = host === "localhost" || host === "127.0.0.1";
-    if (isLocal) return `${protocol}//${host}:8000`;
+    if (isLocal) return "";
   }
 
   // Same-origin fallback for deployed environments behind a reverse-proxy.
