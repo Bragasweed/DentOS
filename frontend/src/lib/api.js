@@ -1,6 +1,24 @@
 import axios from "axios";
 
-const BACKEND_URL = process.env.REACT_APP_BACKEND_URL;
+function getBackendBaseUrl() {
+  const configured = (process.env.REACT_APP_BACKEND_URL || "").trim();
+  if (configured && configured.toLowerCase() !== "undefined") {
+    return configured.replace(/\/+$/, "");
+  }
+
+  // Local DX fallback: CRA on :3000 + FastAPI on :8000.
+  if (typeof window !== "undefined") {
+    const host = window.location.hostname;
+    const protocol = window.location.protocol || "http:";
+    const isLocal = host === "localhost" || host === "127.0.0.1";
+    if (isLocal) return `${protocol}//${host}:8000`;
+  }
+
+  // Same-origin fallback for deployed environments behind a reverse-proxy.
+  return "";
+}
+
+const BACKEND_URL = getBackendBaseUrl();
 export const API = `${BACKEND_URL}/api`;
 
 export const api = axios.create({

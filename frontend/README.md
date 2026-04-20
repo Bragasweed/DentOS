@@ -1,3 +1,22 @@
+# Frontend env rapido
+
+Crea `frontend/.env` partendo da `frontend/env.example`:
+
+```bash
+cp frontend/env.example frontend/.env
+```
+
+Valore principale:
+
+- `REACT_APP_BACKEND_URL` (es: `http://localhost:8000`, **senza** `/api`).
+
+Se non è impostata, l'app usa fallback automatico:
+
+- in locale (`localhost`/`127.0.0.1`) usa `http://<host>:8000`
+- in deploy usa path relativo `/api`
+
+---
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
