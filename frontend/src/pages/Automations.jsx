@@ -4,7 +4,7 @@ import { Plus, Play, CheckCircle2, Clock, XCircle, MessageSquare, Mail, ListChec
 import { fmtDateTime, fmtEUR } from "../lib/format";
 import { toast } from "sonner";
 import {
-  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter,
+  Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogDescription,
 } from "../components/ui/dialog";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "../components/ui/tabs";
 
