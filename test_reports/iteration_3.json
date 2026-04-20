@@ -1,5 +1,5 @@
 {
-  "summary": "Frontend E2E testing of DentalFlow AI (Italian SaaS for dental studios). Executed comprehensive Playwright flows against the public preview URL covering: login (valid/invalid), dashboard KPIs+panels, patients list/filter/search/detail+dialogs, estimates list/filter/create, appointments views/date-nav/status/create, payments/installments/new-plan, settings+team+invite, global search, logout, mobile viewport and brute-force lockout. ~45/48 flows PASS. No blocking bugs identified. 3 minor testid-naming deviations vs review-request spec (functionality works).",
+  "summary": "Frontend E2E testing of HuDent AI (Italian SaaS for dental studios). Executed comprehensive Playwright flows against the public preview URL covering: login (valid/invalid), dashboard KPIs+panels, patients list/filter/search/detail+dialogs, estimates list/filter/create, appointments views/date-nav/status/create, payments/installments/new-plan, settings+team+invite, global search, logout, mobile viewport and brute-force lockout. ~45/48 flows PASS. No blocking bugs identified. 3 minor testid-naming deviations vs review-request spec (functionality works).",
   "backend_issues": {
     "critical": [],
     "minor": []

@@ -1,5 +1,5 @@
 {
-  "summary": "Frontend-only testing of DentalFlow AI Phase 2 Follow-up Center. All 10 feature requirements verified via Playwright against the public URL using admin@dentalflow.it. Dashboard CTA, sidebar link, bottom nav, /recupero queue, send-reminder dialog (4 templates + variable substitution), recent feed with inline status change, and A/B stats dashboard (3 template cards + winner banner + comparative bars) all work as specified. No regressions on dashboard/pazienti/preventivi/appuntamenti/pagamenti.",
+  "summary": "Frontend-only testing of HuDent AI Phase 2 Follow-up Center. All 10 feature requirements verified via Playwright against the public URL using admin@dentalflow.it. Dashboard CTA, sidebar link, bottom nav, /recupero queue, send-reminder dialog (4 templates + variable substitution), recent feed with inline status change, and A/B stats dashboard (3 template cards + winner banner + comparative bars) all work as specified. No regressions on dashboard/pazienti/preventivi/appuntamenti/pagamenti.",
   "backend_issues": {"critical": [], "minor": []},
   "frontend_issues": {
     "ui_bugs": [],

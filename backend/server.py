@@ -31,7 +31,7 @@ REFRESH_TTL_DAYS = 7
 logging.basicConfig(level=logging.INFO, format="%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 logger = logging.getLogger("dentalflow")
 
-app = FastAPI(title="DentalFlow AI")
+app = FastAPI(title="HuDent AI")
 api = APIRouter(prefix="/api")
 
 app.add_middleware(
@@ -900,7 +900,7 @@ async def search(q: str, user: dict = Depends(get_current_user)):
 # Root
 @api.get("/")
 async def root():
-    return {"app": "DentalFlow AI", "status": "ok"}
+    return {"app": "HuDent AI", "status": "ok"}
 
 
 # ----- Startup: indexes + demo seed -----
