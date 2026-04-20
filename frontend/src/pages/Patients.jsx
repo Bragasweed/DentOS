@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { useNavigate } from "react-router-dom";
 import { Plus, Phone, Mail, Search, Filter } from "lucide-react";
@@ -20,7 +20,7 @@ export default function Patients() {
   const [open, setOpen] = useState(false);
   const nav = useNavigate();
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const params = {};
     if (q) params.q = q;
@@ -28,14 +28,12 @@ export default function Patients() {
     const { data } = await api.get("/patients", { params });
     setPatients(data);
     setLoading(false);
-  };
+  }, [q, status]);
 
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [status]);
   useEffect(() => {
-    const t = setTimeout(load, 250);
+    const t = setTimeout(load, q ? 250 : 0);
     return () => clearTimeout(t);
-    /* eslint-disable-next-line */
-  }, [q]);
+  }, [load, q]);
 
   return (
     <div className="space-y-5" data-testid="patients-page">

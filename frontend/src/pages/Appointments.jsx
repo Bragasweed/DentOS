@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { api } from "../lib/api";
 import { Link } from "react-router-dom";
 import { Plus, AlertTriangle, Calendar, ChevronLeft, ChevronRight } from "lucide-react";
@@ -31,13 +31,13 @@ export default function Appointments() {
     return { from: addDays(anchor, -30), to: addDays(anchor, 60) };
   }, [view, anchor]);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const { data } = await api.get("/appointments", { params: { date_from: from, date_to: to } });
     setRows(data);
     setLoading(false);
-  };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [from, to]);
+  }, [from, to]);
+  useEffect(() => { load(); }, [load]);
 
   const waitlist = rows.filter((r) => r.status === "cancellato");
 

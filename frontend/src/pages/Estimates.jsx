@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { Link } from "react-router-dom";
 import { Plus, Phone, Filter, FileText } from "lucide-react";
@@ -18,15 +18,15 @@ export default function Estimates() {
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
-  const load = async () => {
+  const load = useCallback(async () => {
     setLoading(true);
     const params = {};
     if (status) params.status = status;
     const { data } = await api.get("/estimates", { params });
     setRows(data);
     setLoading(false);
-  };
-  useEffect(() => { load(); /* eslint-disable-next-line */ }, [status]);
+  }, [status]);
+  useEffect(() => { load(); }, [load]);
 
   const totals = rows.reduce((acc, r) => { acc[r.status] = (acc[r.status] || 0) + r.total_amount; return acc; }, {});
 
