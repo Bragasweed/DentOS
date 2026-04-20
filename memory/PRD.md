@@ -24,7 +24,28 @@ SaaS mobile-first, PWA-ready, italiano, per studi dentistici. Un "sistema operat
 - `admin_studio`: tutto incluso invito membri e delete paziente
 - `segreteria`, `dentista`, `amministrazione`: read+write sui propri moduli; no invito team
 
-## Implemented (MVP — 2026-02-20 · Phase 2 — 2026-02-22)
+## Implemented (MVP — 2026-02-20 · Phase 2 — 2026-02-22 · Phase 3 — 2026-02-23)
+### Backend (43/43 tests ✅)
+- Auth + brute-force, Pazienti, Preventivi, Appuntamenti, Pagamenti, Call logs, Tasks, Dashboard, Search (Phase 1)
+- Follow-up Center: queue with score, send reminder, A/B stats, conversion tracking (Phase 2)
+- **Phase 3 · Revenue Recovery Automation**:
+  - `GET /api/revenue/overview?date_from&date_to&staff_member&template&channel` — full analytics: KPIs (recovered count/revenue, sent_reminders, reply/appt/acceptance rates, best_template, best_contact_delay, best_contact_time_range, top_staff), funnel, weekly_recovered (8 weeks), templates_performance, top_open_estimates (10), lost_by_reason, month_compare
+  - `GET /api/revenue/radar` — at-risk estimates with `lost_risk_score` (0-100), `recovery_probability` (8-100%), `suggested_template`, `suggested_action` (call_now / send_wa_a / send_wa_b / send_email / offer_financing / archive_or_manual)
+  - `GET /api/revenue/radar/report` — Monday email payload (title, summary, total_at_risk, recoverable_estimate, top 5, CTA)
+  - `automation_rules` collection + CRUD (`/api/automations/rules`)
+  - `automation_runs` collection + GET (`/api/automations/runs?status=`)
+  - `POST /api/automations/simulate` — runs `scheduler_tick()` on demand
+  - `scheduler_tick()` engine — for each active rule + open estimate, creates a `run` (scheduled or executed). Executed runs auto-create reminders (with template substitution) or tasks
+  - Seed: 5 default rules (Day 3/7/14/21/30 — wa_a, wa_b, task, email, task), ~25 executed runs, 2 failed, ~3 scheduled. Rejection reasons populated for `lost_by_reason` chart.
+
+### Frontend (E2E 100% ✅ all phases)
+- All Phase 1 + 2 modules unchanged
+- **Phase 3**:
+  - `/revenue` — RevenueDashboard.jsx: hero with recuperati €/MoM delta, 8 KPI cards, 5 filters (date_from, date_to, staff, template, channel) + reset, recharts BarChart (weekly), conversion funnel, templates performance, top-10 open, lost-by-reason, MoM compare
+  - `/revenue/radar` — RevenueRadar.jsx: red hero with at-risk + recoverable, Monday email preview card, top 5 prominent + rest, score badge + recovery% + suggested action pill
+  - `/automations` — Automations.jsx: 5 sequenze attive hero, "Simula scheduler" + "Nuova regola" CTAs, 4 tabs (Regole/In arrivo/Eseguiti/Falliti), inline Attiva toggle + delete, RuleForm dialog with channel-aware template selector
+- Sidebar: added Revenue, Revenue Radar, Automazioni links
+- BottomNav: added Revenue (replaced Preventivi to keep 5 items; Preventivi accessible via sidebar/dashboard)
 ### Backend (33/33 tests ✅)
 - Auth: register (crea studio+owner), login, logout (idempotente), /me, invite team
 - Brute-force: lockout per (IP+email), reset al primo successo

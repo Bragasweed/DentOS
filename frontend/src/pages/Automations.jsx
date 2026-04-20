@@ -54,7 +54,11 @@ export default function Automations() {
     setSimulating(true);
     try {
       const { data } = await api.post("/automations/simulate");
-      toast.success(`Scheduler: ${data.created} nuovi run, ${data.executed} eseguiti`);
+      if (data.created === 0 && data.executed === 0) {
+        toast.info("Scheduler eseguito · niente di nuovo da fare al momento");
+      } else {
+        toast.success(`Scheduler: ${data.created} nuovi run, ${data.executed} eseguiti`);
+      }
       load();
     } catch { toast.error("Errore simulazione"); }
     finally { setSimulating(false); }
@@ -253,7 +257,10 @@ function RuleForm({ templates, team, onDone, initial }) {
 
   return (
     <DialogContent>
-      <DialogHeader><DialogTitle>{initial ? "Modifica regola" : "Nuova regola automazione"}</DialogTitle></DialogHeader>
+      <DialogHeader>
+        <DialogTitle>{initial ? "Modifica regola" : "Nuova regola automazione"}</DialogTitle>
+        <DialogDescription>Definisci quando e come inviare follow-up automatici dopo un preventivo presentato.</DialogDescription>
+      </DialogHeader>
       <div className="space-y-3">
         <div>
           <label className="block text-xs font-semibold text-slate-600 mb-1.5">Nome</label>
