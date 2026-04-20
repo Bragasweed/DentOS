@@ -18,6 +18,9 @@ import RevenueRadar from "@/pages/RevenueRadar";
 import Automations from "@/pages/Automations";
 import Settings from "@/pages/Settings";
 import Layout from "@/components/Layout";
+import Landing from "@/pages/Landing";
+import Pricing from "@/pages/Pricing";
+import DemoScript from "@/pages/DemoScript";
 
 function Guarded({ title }) {
   const { user, loading } = useAuth();
@@ -40,6 +43,9 @@ function App() {
         <Routes>
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/pricing" element={<Pricing />} />
+          <Route path="/demo" element={<DemoScript />} />
 
           <Route element={<Guarded title="Dashboard" />}>
             <Route path="/" element={<Navigate to="/dashboard" replace />} />
