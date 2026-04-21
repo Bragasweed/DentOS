@@ -5,7 +5,6 @@ import { AuthProvider, useAuth } from "@/lib/auth";
 import { Toaster } from "sonner";
 
 import Login from "@/pages/Login";
-import Register from "@/pages/Register";
 import Dashboard from "@/pages/Dashboard";
 import Patients from "@/pages/Patients";
 import PatientDetail from "@/pages/PatientDetail";
@@ -41,14 +40,15 @@ function App() {
       <BrowserRouter>
         <Toaster position="top-right" richColors closeButton />
         <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/landing" element={<Landing />} />
+          <Route path="/login" element={<Login />} />
+          <Route path="/auth" element={<Navigate to="/login" replace />} />
+          <Route path="/register" element={<Navigate to="/login" replace />} />
           <Route path="/pricing" element={<Pricing />} />
           <Route path="/demo" element={<DemoScript />} />
 
           <Route element={<Guarded title="Dashboard" />}>
-            <Route path="/" element={<Navigate to="/dashboard" replace />} />
             <Route path="/dashboard" element={<Dashboard />} />
           </Route>
           <Route element={<Guarded title="Pazienti" />}>
@@ -78,7 +78,7 @@ function App() {
             <Route path="/impostazioni" element={<Settings />} />
           </Route>
 
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
       </BrowserRouter>
     </AuthProvider>

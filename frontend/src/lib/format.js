@@ -1,8 +1,28 @@
-export const fmtEUR = (n) =>
-  new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR", maximumFractionDigits: 0 }).format(Number(n) || 0);
+const currency = (n, options = {}) =>
+  new Intl.NumberFormat("it-IT", {
+    style: "currency",
+    currency: "EUR",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+    ...options,
+  }).format(Number(n) || 0);
+
+export const fmtEUR = (n) => currency(n, { maximumFractionDigits: 0 });
 
 export const fmtEUR2 = (n) =>
-  new Intl.NumberFormat("it-IT", { style: "currency", currency: "EUR" }).format(Number(n) || 0);
+  currency(n, {
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  });
+
+export const fmtPrice = (n, { maxDecimals = 0, minDecimals = 0 } = {}) =>
+  currency(n, {
+    minimumFractionDigits: minDecimals,
+    maximumFractionDigits: maxDecimals,
+  });
+
+export const annualPlanTotal = (monthly) => monthly * 12 * 0.8;
+export const annualMonthlyEquivalent = (monthly) => annualPlanTotal(monthly) / 12;
 
 export const fmtDate = (iso) => {
   if (!iso) return "—";

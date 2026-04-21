@@ -65,7 +65,7 @@ export default function DemoScript() {
         <div className="text-center">
           <Badge className="bg-blue-50 text-df-primary">Demo guidata per vendita</Badge>
           <h1 className="mt-3 text-4xl font-extrabold tracking-tight text-slate-950">Dal primo contatto all'incasso: demo completa in 6 step</h1>
-          <p className="mx-auto mt-3 max-w-3xl text-slate-600">Questa pagina è pensata per raccontare a titolari e clinic manager come DentalFlow impatta operatività e margini.</p>
+          <p className="mx-auto mt-3 max-w-3xl text-slate-600">Questa pagina è pensata per mostrare a titolari e clinic manager il percorso premium: demo consulenziale, attivazione e onboarding assistito.</p>
         </div>
 
         <div className="mt-8 space-y-4">
@@ -109,7 +109,7 @@ export default function DemoScript() {
 
         <div className="mt-8 text-center">
           <Button asChild size="lg" className="bg-df-primary hover:bg-blue-900" data-testid="demo-final-cta">
-            <NavLink to="/pricing">Prenota una demo reale <ArrowRight className="ml-2 h-4 w-4" /></NavLink>
+            <NavLink to="/pricing">Richiedi attivazione <ArrowRight className="ml-2 h-4 w-4" /></NavLink>
           </Button>
         </div>
       </section>

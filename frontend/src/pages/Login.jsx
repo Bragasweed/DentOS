@@ -29,7 +29,6 @@ export default function Login() {
 
   return (
     <div className="min-h-screen grid lg:grid-cols-2 bg-df-bg">
-      {/* Left visual */}
       <div
         className="hidden lg:flex relative items-end p-12 text-white"
         style={{
@@ -51,7 +50,6 @@ export default function Login() {
         </div>
       </div>
 
-      {/* Right form */}
       <div className="flex flex-col justify-center px-6 sm:px-10 lg:px-16 py-12">
         <div className="max-w-md w-full mx-auto">
           <div className="flex items-center gap-2.5 mb-10">
@@ -63,7 +61,7 @@ export default function Login() {
           </div>
 
           <h1 className="text-3xl font-bold tracking-tight text-slate-900" style={{ fontFamily: "Manrope" }}>Bentornato</h1>
-          <p className="text-sm text-slate-500 mt-1">Accedi al tuo studio per vedere le priorità di oggi.</p>
+          <p className="text-sm text-slate-500 mt-1">Accesso riservato agli studi già attivi su DentalFlow AI.</p>
 
           <form onSubmit={onSubmit} className="mt-8 space-y-4">
             <div>
@@ -97,13 +95,12 @@ export default function Login() {
               className="w-full h-11 rounded-lg bg-df-primary text-white font-semibold text-sm hover:bg-[#1E3A8A] transition-all inline-flex items-center justify-center gap-2 disabled:opacity-60"
             >
               {submitting ? <Loader2 size={16} className="animate-spin" /> : null}
-              Accedi allo studio
+              Accedi alla piattaforma
             </button>
           </form>
 
           <div className="mt-6 text-sm text-slate-500 text-center">
-            Non hai ancora uno studio?{" "}
-            <Link to="/register" data-testid="login-goto-register" className="text-df-primary font-semibold hover:underline">Crea account</Link>
+            L’accesso è riservato ai clienti attivi. <Link to="/demo" className="text-df-primary font-semibold hover:underline">Richiedi attivazione</Link>
           </div>
 
           <div className="mt-8 p-4 rounded-lg bg-sky-50 border border-sky-100 text-xs text-sky-900">
