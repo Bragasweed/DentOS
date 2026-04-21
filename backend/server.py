@@ -8,7 +8,6 @@ import os
 import logging
 import uuid
 import bcrypt
-import jwt
 import random
 from datetime import datetime, timezone, timedelta, date
 from typing import List, Optional, Literal
@@ -17,6 +16,9 @@ from fastapi import FastAPI, APIRouter, Depends, HTTPException, Request, Respons
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pymongo.errors import PyMongoError
+from jose import jwt
+from jose.exceptions import ExpiredSignatureError, JWTError
 
 # ----- Config -----
 mongo_url = os.environ["MONGO_URL"]
@@ -34,13 +36,27 @@ logger = logging.getLogger("dentalflow")
 app = FastAPI(title="HuDent AI")
 api = APIRouter(prefix="/api")
 
+cors_origins_raw = os.environ.get("CORS_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000")
+cors_origins = [o.strip() for o in cors_origins_raw.split(",") if o.strip()]
+allow_all_origins = "*" in cors_origins
+
 app.add_middleware(
     CORSMiddleware,
-    allow_credentials=False,
-    allow_origins=["*"],
+    allow_credentials=not allow_all_origins,
+    allow_origins=["*"] if allow_all_origins else cors_origins,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(PyMongoError)
+async def handle_mongo_errors(request: Request, exc: PyMongoError):
+    logger.exception("Database error: %s", exc)
+    return Response(
+        content='{"detail":"Database non raggiungibile. Verifica MongoDB e variabili .env"}',
+        media_type="application/json",
+        status_code=503,
+    )
 
 # ----- Helpers -----
 def now_iso() -> str:
@@ -165,9 +181,9 @@ async def get_current_user(request: Request) -> dict:
             raise HTTPException(status_code=401, detail="Utente non trovato")
         user.pop("password_hash", None)
         return user
-    except jwt.ExpiredSignatureError:
+    except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token scaduto")
-    except jwt.InvalidTokenError:
+    except JWTError:
         raise HTTPException(status_code=401, detail="Token non valido")
 
 

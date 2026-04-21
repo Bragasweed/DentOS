@@ -17,6 +17,7 @@ E facoltative per i dati demo:
 - `DEMO_SEED=true|false`
 - `ADMIN_EMAIL`
 - `ADMIN_PASSWORD`
+- `CORS_ORIGINS` (lista separata da virgole, default localhost:3000)
 
 Puoi partire da:
 
@@ -96,3 +97,4 @@ pytest backend/tests -q
 - **Errore su `MONGO_URL` / `DB_NAME` / `JWT_SECRET`**: controlla che `backend/.env` esista e abbia tutte le chiavi.
 - **Nessun dato demo**: verifica `DEMO_SEED=true` e riavvia il server.
 - **Credenziali admin non funzionano**: se lo studio demo esiste già, aggiorna `ADMIN_PASSWORD` nel `.env` e riavvia; lo startup sincronizza la password admin demo.
+- **CORS dal frontend**: aggiungi `http://localhost:3000` in `CORS_ORIGINS` oppure usa il proxy CRA (vedi `frontend/package.json`).
