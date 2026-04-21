@@ -8,7 +8,6 @@ import os
 import logging
 import uuid
 import bcrypt
-import jwt
 import random
 from datetime import datetime, timezone, timedelta, date
 from typing import List, Optional, Literal
@@ -18,6 +17,8 @@ from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 from pydantic import BaseModel, Field, EmailStr, ConfigDict
 from pymongo.errors import PyMongoError
+from jose import jwt
+from jose.exceptions import ExpiredSignatureError, JWTError
 
 # ----- Config -----
 mongo_url = os.environ["MONGO_URL"]
@@ -180,9 +181,9 @@ async def get_current_user(request: Request) -> dict:
             raise HTTPException(status_code=401, detail="Utente non trovato")
         user.pop("password_hash", None)
         return user
-    except jwt.ExpiredSignatureError:
+    except ExpiredSignatureError:
         raise HTTPException(status_code=401, detail="Token scaduto")
-    except jwt.InvalidTokenError:
+    except JWTError:
         raise HTTPException(status_code=401, detail="Token non valido")
 
 
