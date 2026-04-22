@@ -14,6 +14,7 @@ import Payments from "@/pages/Payments";
 import FollowupCenter from "@/pages/FollowupCenter";
 import RevenueDashboard from "@/pages/RevenueDashboard";
 import RevenueRadar from "@/pages/RevenueRadar";
+import RevenueHealth from "@/pages/RevenueHealth";
 import Automations from "@/pages/Automations";
 import Settings from "@/pages/Settings";
 import Layout from "@/components/Layout";
@@ -63,6 +64,7 @@ function App() {
           </Route>
           <Route element={<Guarded title="Revenue" />}>
             <Route path="/revenue" element={<RevenueDashboard />} />
+            <Route path="/revenue/health" element={<RevenueHealth />} />
             <Route path="/revenue/radar" element={<RevenueRadar />} />
           </Route>
           <Route element={<Guarded title="Automazioni" />}>

@@ -1,6 +1,6 @@
 import React from "react";
 import { NavLink, useLocation } from "react-router-dom";
-import { LayoutDashboard, Users, FileText, Calendar, Wallet, Settings, LogOut, Sparkles, Target, Radar, Cog } from "lucide-react";
+import { LayoutDashboard, Users, FileText, Calendar, Wallet, Settings, LogOut, Sparkles, Target, Radar, Cog, Activity } from "lucide-react";
 import { useAuth } from "../lib/auth";
 import { ROLE_LABELS } from "../lib/format";
 
@@ -8,6 +8,7 @@ const links = [
   { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, testid: "sidebar-dashboard-link" },
   { to: "/recupero", label: "Centro recupero", icon: Sparkles, testid: "sidebar-followup-link" },
   { to: "/revenue", label: "Revenue", icon: Target, testid: "sidebar-revenue-link" },
+  { to: "/revenue/health", label: "Health Score", icon: Activity, testid: "sidebar-health-link" },
   { to: "/revenue/radar", label: "Revenue Radar", icon: Radar, testid: "sidebar-radar-link" },
   { to: "/automations", label: "Automazioni", icon: Cog, testid: "sidebar-automations-link" },
   { to: "/pazienti", label: "Pazienti", icon: Users, testid: "sidebar-patients-link" },
