@@ -66,6 +66,36 @@ class TestRevenueOverview:
         assert keys.issubset({"wa_template_a"})
 
 
+class TestRevenueHealthScore:
+    def test_health_score_structure(self, session, admin_headers):
+        r = session.get(f"{API}/revenue/health-score", headers=admin_headers)
+        assert r.status_code == 200
+        d = r.json()
+        for k in ("score", "category", "explanation", "recommended_action", "raw_metrics", "subscores", "trend", "generated_at"):
+            assert k in d, f"missing {k}"
+        assert 0 <= d["score"] <= 100
+        assert d["category"] in {"Ottimo", "Buono", "Attenzione", "Critico"}
+        assert d["recommended_action"]["label"] in {
+            "Apri Agenda",
+            "Apri Recupero Preventivi",
+            "Apri Revenue Lost Radar",
+            "Apri dashboard revenue",
+        }
+        for s in ("acceptance_rate", "revenue_trend", "closing_speed", "no_show_rate"):
+            assert s in d["subscores"]
+            assert 0 <= d["subscores"][s] <= 100
+
+    def test_health_score_filters(self, session, admin_headers):
+        today = date.today()
+        frm = (today - timedelta(days=30)).isoformat()
+        to = today.isoformat()
+        r = session.get(f"{API}/revenue/health-score?date_from={frm}&date_to={to}", headers=admin_headers)
+        assert r.status_code == 200
+        d = r.json()
+        assert d["raw_metrics"]["period"]["date_from"] == frm
+        assert d["raw_metrics"]["period"]["date_to"] == to
+
+
 # ---------- Lost Radar ----------
 class TestRevenueRadar:
     def test_radar_returns_scored_items(self, session, admin_headers):

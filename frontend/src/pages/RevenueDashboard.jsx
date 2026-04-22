@@ -5,6 +5,7 @@ import { fmtEUR, fmtDate } from "../lib/format";
 import { TrendingUp, TrendingDown, Users, Send, Clock, Award, Radar, ArrowUpRight, Target, CheckCircle2, MessageSquare, Mail } from "lucide-react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, CartesianGrid } from "recharts";
 import { toast } from "sonner";
+import { getHealthActionRoute, healthCategoryTone, HEALTH_DIMENSION_LABELS } from "../lib/healthScore";
 
 const TPL_LABELS = {
   wa_template_a: "WhatsApp A",
@@ -36,6 +37,7 @@ const KpiCard = ({ icon: Icon, label, value, sub, tone = "slate", testid }) => {
 
 export default function RevenueDashboard() {
   const [data, setData] = useState(null);
+  const [health, setHealth] = useState(null);
   const [loading, setLoading] = useState(true);
   const [filters, setFilters] = useState({
     date_from: "",
@@ -51,15 +53,19 @@ export default function RevenueDashboard() {
     try {
       const params = {};
       Object.entries(filters).forEach(([k, v]) => { if (v) params[k] = v; });
-      const { data } = await api.get("/revenue/overview", { params });
-      setData(data);
+      const [{ data: revData }, { data: healthData }] = await Promise.all([
+        api.get("/revenue/overview", { params }),
+        api.get("/revenue/health-score", { params: { date_from: params.date_from, date_to: params.date_to } }),
+      ]);
+      setData(revData);
+      setHealth(healthData);
     } catch { toast.error("Errore caricamento revenue"); }
     finally { setLoading(false); }
   }, [filters]);
   useEffect(() => { load(); }, [load]);
   useEffect(() => { api.get("/auth/team").then(({ data }) => setStaff(data)); }, []);
 
-  if (loading || !data) return <div className="py-14 text-center text-slate-400" data-testid="revenue-loading">Caricamento…</div>;
+  if (loading || !data || !health) return <div className="py-14 text-center text-slate-400" data-testid="revenue-loading">Caricamento…</div>;
 
   const { kpis, funnel, weekly_recovered, templates_performance, top_open_estimates, lost_by_reason, month_compare } = data;
   const mom = (() => {
@@ -69,6 +75,7 @@ export default function RevenueDashboard() {
     return { delta: Math.round(((cur - prev) / prev) * 100), up: cur >= prev };
   })();
 
+  const healthActionHref = getHealthActionRoute(health.recommended_action?.key);
   return (
     <div className="space-y-6" data-testid="revenue-page">
       {/* Hero */}
@@ -91,6 +98,42 @@ export default function RevenueDashboard() {
           </div>
           <Link to="/revenue/radar" data-testid="revenue-cta-radar" className="inline-flex items-center gap-2 px-4 h-11 rounded-lg bg-white text-df-primary font-semibold text-sm hover:bg-slate-100 self-start">
             <Radar size={16} /> Revenue Lost Radar
+          </Link>
+        </div>
+      </div>
+
+      <div className="grid lg:grid-cols-3 gap-4" data-testid="health-score-section">
+        <Link to="/revenue/health" className="lg:col-span-2 bg-white rounded-xl border border-slate-200 p-5 hover:border-df-primary/30 transition" data-testid="health-score-card">
+          <div className="flex items-start justify-between gap-3">
+            <div>
+              <div className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Health Score Studio</div>
+              <div className="mt-1 flex items-center gap-3">
+                <div className="text-4xl font-bold text-slate-900" style={{ fontFamily: "Manrope" }} data-testid="health-score-value">{health.score}</div>
+                <span className={`text-xs font-semibold rounded-full px-2.5 py-1 ${healthCategoryTone(health.category)}`} data-testid="health-score-category">{health.category}</span>
+              </div>
+            </div>
+            <span className={`text-xs font-semibold ${health.trend.direction === "down" ? "text-red-600" : "text-emerald-600"}`} data-testid="health-score-trend">
+              {health.trend.delta_score >= 0 ? "+" : ""}{health.trend.delta_score}
+            </span>
+          </div>
+          <p className="mt-2 text-sm text-slate-600" data-testid="health-score-explanation">{health.explanation}</p>
+          <div className="mt-3 grid grid-cols-2 gap-2">
+            {Object.entries(health.subscores).map(([k, v]) => (
+              <div key={k} className="rounded-md bg-slate-50 p-2" data-testid={`health-mini-${k}`}>
+                <div className="text-[11px] text-slate-500">{HEALTH_DIMENSION_LABELS[k] || k}</div>
+                <div className="text-sm font-bold text-slate-900">{Math.round(v)}/100</div>
+              </div>
+            ))}
+          </div>
+        </Link>
+        <div className="bg-white rounded-xl border border-slate-200 p-5" data-testid="health-score-cta">
+          <div className="text-xs uppercase tracking-wider text-slate-500 font-semibold">Azione prioritaria</div>
+          <div className="mt-2 text-sm text-slate-700">Migliora la metrica più debole per alzare il KPI quotidiano.</div>
+          <Link to={healthActionHref} className="mt-4 inline-flex h-10 px-4 rounded-lg bg-df-primary text-white text-sm font-semibold items-center" data-testid="health-primary-cta-link">
+            {health.recommended_action?.label}
+          </Link>
+          <Link to="/revenue/health" className="mt-2 inline-flex text-xs font-semibold text-df-primary hover:underline">
+            Vedi breakdown completo <ArrowUpRight size={12} className="ml-1 mt-0.5" />
           </Link>
         </div>
       </div>

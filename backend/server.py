@@ -1359,6 +1359,51 @@ def _month_bounds(ref: Optional[date] = None):
     return start.isoformat(), end.isoformat(), prev_start.isoformat()
 
 
+def _safe_pct(num: float, den: float) -> float:
+    return round((num * 100 / den), 2) if den else 0.0
+
+
+def _clamp(v: float, low: float = 0, high: float = 100) -> float:
+    return max(low, min(high, v))
+
+
+def _category_from_score(score: int) -> str:
+    if score >= 80:
+        return "Ottimo"
+    if score >= 65:
+        return "Buono"
+    if score >= 45:
+        return "Attenzione"
+    return "Critico"
+
+
+def _recommended_action_for_dimension(dim_key: str) -> tuple[str, str]:
+    mapping = {
+        "no_show_rate": ("open_agenda", "Apri Agenda"),
+        "acceptance_rate": ("open_estimate_recovery", "Apri Recupero Preventivi"),
+        "closing_speed": ("open_revenue_lost_radar", "Apri Revenue Lost Radar"),
+        "revenue_trend": ("open_revenue_dashboard", "Apri dashboard revenue"),
+    }
+    return mapping.get(dim_key, ("open_revenue_dashboard", "Apri dashboard revenue"))
+
+
+def _build_health_explanation(score: int, trend_delta: int, worst_dimension: str, best_dimension: str) -> str:
+    trend_word = "in crescita" if trend_delta >= 0 else "in calo"
+    if worst_dimension == "no_show_rate":
+        return f"Il punteggio è {trend_word} soprattutto per l'aumento dei no-show."
+    if worst_dimension == "acceptance_rate":
+        return f"Il punteggio è {trend_word}: troppi preventivi non vengono accettati."
+    if worst_dimension == "closing_speed":
+        return "Revenue in crescita ma follow-up troppo lenti."
+    if worst_dimension == "revenue_trend":
+        if best_dimension == "acceptance_rate":
+            return "Buona accettazione preventivi, ma la revenue mese su mese sta rallentando."
+        return "Trend revenue in calo rispetto al periodo precedente: intervenire subito."
+    if score >= 80:
+        return "Ottimo andamento: preventivi accettati sopra la media e tempi di chiusura più rapidi."
+    return "Andamento stabile ma con margini di miglioramento su più aree operative."
+
+
 def compute_lost_risk_score(estimate: dict, reminders: list) -> tuple[int, int, str, str]:
     """Return (lost_risk_score, recovery_probability_pct, suggested_template_key, suggested_action_key)."""
     score = 40
@@ -1650,6 +1695,198 @@ async def revenue_overview(
             "current": {"sent": cur_m["sent"], "accepted": cur_m["accepted"], "revenue": cur_rev, "accept_rate": cur_m["accept_rate"]},
             "previous": {"sent": prev_m["sent"], "accepted": prev_m["accepted"], "revenue": prev_rev, "accept_rate": prev_m["accept_rate"]},
         },
+    }
+
+
+# ----- Health Score Studio -----
+@api.get("/revenue/health-score")
+async def revenue_health_score(
+    user: dict = Depends(get_current_user),
+    date_from: Optional[str] = Query(default=None),
+    date_to: Optional[str] = Query(default=None),
+):
+    sid = user["studio_id"]
+    start_month, end_month, _ = _month_bounds()
+    df = date_from or start_month
+    dt = date_to or end_month
+
+    cur_start = date.fromisoformat(df)
+    cur_end = date.fromisoformat(dt)
+    span_days = max(1, (cur_end - cur_start).days)
+    prev_end = cur_start
+    prev_start = cur_start - timedelta(days=span_days)
+    prev_df, prev_dt = prev_start.isoformat(), prev_end.isoformat()
+
+    async def _period_metrics(start: str, end: str):
+        estimates = await db.estimates.find({
+            "studio_id": sid,
+            "presented_at": {"$gte": start, "$lt": end},
+        }, {"_id": 0, "id": 1, "status": 1, "presented_at": 1, "total_amount": 1}).to_list(5000)
+
+        accepted_est = [e for e in estimates if e.get("status") == "accettato"]
+        decided_est = [e for e in estimates if e.get("status") in ("accettato", "rifiutato", "scaduto")]
+        acceptance_rate = _safe_pct(len(accepted_est), len(decided_est))
+        accepted_revenue = round(sum(float(e.get("total_amount") or 0) for e in accepted_est), 2)
+
+        acc_est_ids = [e["id"] for e in accepted_est]
+        reminders = []
+        if acc_est_ids:
+            reminders = await db.reminders.find({
+                "studio_id": sid,
+                "estimate_id": {"$in": acc_est_ids},
+                "status": "accepted",
+            }, {"_id": 0, "estimate_id": 1, "status_updated_at": 1, "sent_at": 1}).to_list(5000)
+        first_accepted_by_est: dict[str, datetime] = {}
+        for r in reminders:
+            raw_ts = r.get("status_updated_at") or r.get("sent_at")
+            if not raw_ts:
+                continue
+            try:
+                ts = datetime.fromisoformat(raw_ts)
+            except Exception:
+                continue
+            est_id = r.get("estimate_id")
+            if est_id and (est_id not in first_accepted_by_est or ts < first_accepted_by_est[est_id]):
+                first_accepted_by_est[est_id] = ts
+
+        closing_days = []
+        for e in accepted_est:
+            try:
+                presented = e.get("presented_at")
+                if not presented:
+                    continue
+                pday = datetime.fromisoformat(presented).date() if "T" in presented else date.fromisoformat(presented)
+                accepted_ts = first_accepted_by_est.get(e["id"])
+                if accepted_ts:
+                    days = (accepted_ts.date() - pday).days
+                    if days >= 0:
+                        closing_days.append(days)
+            except Exception:
+                continue
+        avg_closing_days = round(sum(closing_days) / len(closing_days), 2) if closing_days else None
+
+        appointments = await db.appointments.find({
+            "studio_id": sid,
+            "scheduled_at": {"$gte": start, "$lt": end},
+        }, {"_id": 0, "status": 1}).to_list(5000)
+        no_show_count = sum(1 for a in appointments if a.get("status") == "no_show")
+        attended_count = sum(1 for a in appointments if a.get("status") in ("no_show", "completato"))
+        no_show_rate = _safe_pct(no_show_count, attended_count)
+
+        return {
+            "acceptance_rate": acceptance_rate,
+            "accepted_revenue": accepted_revenue,
+            "avg_closing_days": avg_closing_days,
+            "no_show_rate": no_show_rate,
+            "counts": {
+                "estimates_total": len(estimates),
+                "decided_estimates": len(decided_est),
+                "accepted_estimates": len(accepted_est),
+                "appointments_observed": attended_count,
+                "no_show_appointments": no_show_count,
+                "accepted_with_timing": len(closing_days),
+            },
+        }
+
+    current = await _period_metrics(df, dt)
+    previous = await _period_metrics(prev_df, prev_dt)
+
+    acceptance_score = _clamp(current["acceptance_rate"] * 1.2)
+    prev_revenue = previous["accepted_revenue"]
+    if prev_revenue <= 0 and current["accepted_revenue"] > 0:
+        revenue_trend_pct = 100.0
+    elif prev_revenue <= 0:
+        revenue_trend_pct = 0.0
+    else:
+        revenue_trend_pct = round(((current["accepted_revenue"] - prev_revenue) / prev_revenue) * 100, 2)
+    revenue_score = _clamp(50 + _clamp(revenue_trend_pct, -50, 50))
+
+    avg_closing_days = current["avg_closing_days"]
+    if avg_closing_days is None:
+        closing_speed_score = 50.0
+    elif avg_closing_days <= 3:
+        closing_speed_score = 100.0
+    elif avg_closing_days <= 7:
+        closing_speed_score = 85.0
+    elif avg_closing_days <= 14:
+        closing_speed_score = 65.0
+    elif avg_closing_days <= 21:
+        closing_speed_score = 45.0
+    else:
+        closing_speed_score = _clamp(45 - (avg_closing_days - 21) * 2, 5, 45)
+
+    no_show_score = _clamp(100 - (current["no_show_rate"] * 3), 0, 100)
+
+    subscores = {
+        "acceptance_rate": round(acceptance_score, 1),
+        "revenue_trend": round(revenue_score, 1),
+        "closing_speed": round(closing_speed_score, 1),
+        "no_show_rate": round(no_show_score, 1),
+    }
+    weights = {
+        "acceptance_rate": 0.35,
+        "revenue_trend": 0.25,
+        "closing_speed": 0.20,
+        "no_show_rate": 0.20,
+    }
+    weighted = sum(subscores[k] * w for k, w in weights.items())
+    score = int(round(_clamp(weighted, 0, 100)))
+
+    prev_acceptance_score = _clamp(previous["acceptance_rate"] * 1.2)
+    prev_no_show_score = _clamp(100 - (previous["no_show_rate"] * 3), 0, 100)
+    prev_closing_days = previous["avg_closing_days"]
+    if prev_closing_days is None:
+        prev_closing_score = 50.0
+    elif prev_closing_days <= 3:
+        prev_closing_score = 100.0
+    elif prev_closing_days <= 7:
+        prev_closing_score = 85.0
+    elif prev_closing_days <= 14:
+        prev_closing_score = 65.0
+    elif prev_closing_days <= 21:
+        prev_closing_score = 45.0
+    else:
+        prev_closing_score = _clamp(45 - (prev_closing_days - 21) * 2, 5, 45)
+    prev_score = int(round(_clamp(
+        prev_acceptance_score * 0.35 +
+        50.0 * 0.25 +  # neutral reference for trend in previous baseline
+        prev_closing_score * 0.20 +
+        prev_no_show_score * 0.20, 0, 100
+    )))
+    delta = score - prev_score
+    trend_direction = "up" if delta > 0 else ("down" if delta < 0 else "flat")
+
+    worst_dimension = min(subscores.items(), key=lambda kv: kv[1])[0]
+    best_dimension = max(subscores.items(), key=lambda kv: kv[1])[0]
+    action_key, action_label = _recommended_action_for_dimension(worst_dimension)
+    explanation = _build_health_explanation(score, delta, worst_dimension, best_dimension)
+
+    return {
+        "score": score,
+        "category": _category_from_score(score),
+        "explanation": explanation,
+        "recommended_action": {
+            "key": action_key,
+            "label": action_label,
+            "focus_dimension": worst_dimension,
+        },
+        "raw_metrics": {
+            "period": {"date_from": df, "date_to": dt},
+            "previous_period": {"date_from": prev_df, "date_to": prev_dt},
+            "acceptance_rate": current["acceptance_rate"],
+            "accepted_revenue": current["accepted_revenue"],
+            "revenue_trend_pct": round(revenue_trend_pct, 2),
+            "avg_closing_days": current["avg_closing_days"],
+            "no_show_rate": current["no_show_rate"],
+            "counts": current["counts"],
+        },
+        "subscores": subscores,
+        "trend": {
+            "direction": trend_direction,
+            "delta_score": delta,
+            "previous_score": prev_score,
+        },
+        "generated_at": now_iso(),
     }
 
 
