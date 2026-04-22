@@ -81,7 +81,7 @@ const faqs = [
   ["Funziona con WhatsApp?", "Sì, puoi inviare reminder e follow-up su WhatsApp con tracciamento esiti e test A/B sui messaggi."],
   ["I miei dati sono sicuri?", "Sì. Accessi multi-tenant per studio, permessi per ruolo e policy di accesso centralizzate."],
   ["Serve installare qualcosa?", "No. È una piattaforma cloud: apri il browser, accedi e il team lavora subito."],
-  ["Posso provarlo prima?", "Sì, prenoti una demo guidata e impostiamo insieme un piano pilota sui tuoi flussi reali."],
+  ["Posso accedere subito?", "L’accesso è riservato ai clienti attivi: valutiamo insieme il tuo caso in demo e poi attiviamo lo studio."],
 ];
 
 function FadeIn({ children, delay = 0 }) {
@@ -103,14 +103,14 @@ export default function Landing() {
             <span className="block text-df-primary">Riduci i pazienti persi.</span>
           </h1>
           <p className="mt-4 max-w-xl text-base text-slate-600 sm:text-lg">
-            HuDent AI unisce agenda, follow-up e revenue in un solo flusso operativo. Meno lavoro manuale, più preventivi accettati.
+            DentalFlow AI è una piattaforma premium su attivazione: onboarding assistito, configurazione guidata e supporto operativo per il tuo studio.
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <Button asChild size="lg" className="bg-df-primary hover:bg-blue-900" data-testid="landing-cta-book-demo">
               <NavLink to="/pricing">Prenota demo <ArrowRight className="ml-2 h-4 w-4" /></NavLink>
             </Button>
             <Button asChild size="lg" variant="outline" data-testid="landing-cta-watch-how">
-              <NavLink to="/demo">Guarda come funziona</NavLink>
+              <NavLink to="/demo">Contattaci</NavLink>
             </Button>
           </div>
           <div className="mt-5 flex flex-wrap gap-2 text-sm">
@@ -251,11 +251,11 @@ export default function Landing() {
         <Card className="rounded-2xl border-df-primary/20 bg-df-primary text-white">
           <CardContent className="flex flex-col gap-3 p-6 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-sm text-blue-100">Piani flessibili per studio</p>
-              <h3 className="text-2xl font-bold">Scopri il piano più adatto alla tua crescita</h3>
+              <p className="text-sm text-blue-100">Attivazione guidata per studio</p>
+              <h3 className="text-2xl font-bold">Parla con noi e richiedi attivazione</h3>
             </div>
             <Button asChild variant="secondary" data-testid="landing-pricing-teaser-cta">
-              <NavLink to="/pricing">Vai ai prezzi</NavLink>
+              <NavLink to="/pricing">Richiedi attivazione</NavLink>
             </Button>
           </CardContent>
         </Card>
@@ -277,8 +277,8 @@ export default function Landing() {
         <Card className="overflow-hidden rounded-3xl border-slate-300 bg-gradient-to-r from-slate-900 to-df-primary text-white">
           <CardContent className="flex flex-col gap-4 p-7 md:flex-row md:items-center md:justify-between">
             <div>
-              <p className="text-blue-100">Prenota una demo di 20 minuti</p>
-              <h2 className="text-3xl font-extrabold">Scopri quanto revenue stai lasciando sul tavolo</h2>
+              <p className="text-blue-100">Prenota una demo di 20 minuti con consulente</p>
+              <h2 className="text-3xl font-extrabold">Scopri il percorso di attivazione per il tuo studio</h2>
             </div>
             <Button asChild size="lg" className="bg-white text-slate-900 hover:bg-slate-100" data-testid="landing-final-cta">
               <NavLink to="/pricing"><Clock3 className="mr-2 h-4 w-4" />Prenota demo</NavLink>

@@ -1,10 +1,10 @@
 import React from "react";
 import { NavLink } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Stethoscope, CalendarCheck2 } from "lucide-react";
+import { Stethoscope, CalendarCheck2, LogIn, MessageSquareMore } from "lucide-react";
 
 const navItems = [
-  { to: "/landing", label: "Landing" },
+  { to: "/", label: "Home" },
   { to: "/pricing", label: "Prezzi" },
   { to: "/demo", label: "Demo" },
 ];
@@ -14,7 +14,7 @@ export default function MarketingShell({ children }) {
     <div className="min-h-screen bg-slate-50 text-slate-900">
       <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 backdrop-blur">
         <div className="mx-auto flex h-16 w-full max-w-6xl items-center justify-between px-4 sm:px-6">
-          <NavLink to="/landing" className="flex items-center gap-2" data-testid="marketing-logo-link">
+          <NavLink to="/" className="flex items-center gap-2" data-testid="marketing-logo-link">
             <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-df-primary text-white">
               <Stethoscope size={18} />
             </div>
@@ -39,8 +39,11 @@ export default function MarketingShell({ children }) {
           </nav>
 
           <div className="flex items-center gap-2">
-            <Button asChild variant="outline" className="hidden sm:inline-flex" data-testid="marketing-watch-demo-top">
-              <NavLink to="/demo">Guarda demo</NavLink>
+            <Button asChild variant="outline" className="hidden sm:inline-flex" data-testid="marketing-contact-top">
+              <NavLink to="/demo"><MessageSquareMore className="mr-2 h-4 w-4" />Contattaci</NavLink>
+            </Button>
+            <Button asChild variant="outline" data-testid="marketing-login-top">
+              <NavLink to="/login"><LogIn className="mr-2 h-4 w-4" />Accedi</NavLink>
             </Button>
             <Button asChild className="bg-df-primary hover:bg-blue-900" data-testid="marketing-book-demo-top">
               <NavLink to="/pricing"><CalendarCheck2 className="mr-2 h-4 w-4" />Prenota demo</NavLink>
